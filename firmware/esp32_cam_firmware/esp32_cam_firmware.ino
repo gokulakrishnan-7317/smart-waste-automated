@@ -278,6 +278,7 @@ void setup() {
 
   // 2. Configure OV2640 Camera
   camera_config_t config;
+  memset(&config, 0, sizeof(camera_config_t));
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer   = LEDC_TIMER_0;
   config.pin_d0       = Y2_GPIO_NUM;
@@ -298,25 +299,35 @@ void setup() {
   config.pin_reset    = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
-  config.grab_mode    = CAMERA_GRAB_LATEST; // CRITICAL: Always streams freshest frame (eliminates lag!)
-  config.fb_location  = CAMERA_FB_IN_PSRAM;
 
-  // Ultra-Low Latency settings for YOLOv8 (25-30 FPS, Zero-Lag Wi-Fi)
   if (psramFound()) {
-    Serial.println("✅ PSRAM Detected! Enabling High-Speed Double-Buffering.");
-    config.frame_size   = FRAMESIZE_HVGA; // 480x320 (Optimal balance: high detail + ultra low latency)
-    config.jpeg_quality = 21;             // Cuts payload to ~8KB -> 30 FPS zero-lag stream!
-    config.fb_count     = 2;              // Double buffering
+    Serial.println("✅ PSRAM Detected! Initializing High-Speed Stream Buffer.");
+    config.frame_size   = FRAMESIZE_VGA;  // 640x480 standard resolution (stable DMA allocation)
+    config.jpeg_quality = 12;
+    config.fb_count     = 1;              // 1 buffer avoids DMA descriptor exhaustion
+    config.grab_mode    = CAMERA_GRAB_WHEN_EMPTY;
+    config.fb_location  = CAMERA_FB_IN_PSRAM;
   } else {
-    Serial.println("⚠️ Warning: PSRAM not detected. Using CIF 400x296.");
-    config.frame_size   = FRAMESIZE_CIF;  // 400x296
-    config.jpeg_quality = 24;
+    Serial.println("⚠️ Warning: PSRAM not detected. Using QVGA 320x240.");
+    config.frame_size   = FRAMESIZE_QVGA; // 320x240
+    config.jpeg_quality = 16;
     config.fb_count     = 1;
+    config.grab_mode    = CAMERA_GRAB_WHEN_EMPTY;
     config.fb_location  = CAMERA_FB_IN_DRAM;
   }
 
-  // Camera Init
+  // Camera Init with Automatic Robust Fallback
   esp_err_t err = esp_camera_init(&config);
+  if (err != ESP_OK) {
+    Serial.printf("⚠️ Primary allocation failed (0x%x). Retrying with safe QVGA DRAM...\n", err);
+    config.frame_size   = FRAMESIZE_QVGA;
+    config.jpeg_quality = 16;
+    config.fb_count     = 1;
+    config.grab_mode    = CAMERA_GRAB_WHEN_EMPTY;
+    config.fb_location  = CAMERA_FB_IN_DRAM;
+    err = esp_camera_init(&config);
+  }
+
   if (err != ESP_OK) {
     Serial.printf("❌ Camera init failed with error 0x%x\n", err);
     Serial.println("   Please check camera ribbon cable connection and press Reset.");
@@ -385,3 +396,4 @@ void loop() {
 
   delay(250);
 }
+
