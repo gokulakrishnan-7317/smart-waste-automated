@@ -348,41 +348,24 @@ void setup() {
     s->set_gain_ctrl(s, 1);      // 0 = disable , 1 = enable
   }
 
-  // 3. Connect to Laptop Hotspot with DHCP Fallback & Direct AP
+  // 3. Connect to Laptop Hotspot via Native DHCP
   WiFi.mode(WIFI_STA);
   WiFi.setSleep(false);               // Disable modem sleep for ultra-low latency streaming
   esp_wifi_set_ps(WIFI_PS_NONE);      // Full power transmission
   WiFi.setTxPower(WIFI_POWER_19_5dBm);
   WiFi.setAutoReconnect(true);
 
-  // Try Static IP first
-  WiFi.config(static_IP, gateway, subnet, dns);
   WiFi.begin(ssid, password);
 
-  Serial.printf("\nConnecting to Hotspot '%s'...", ssid);
+  Serial.printf("\nConnecting to Hotspot '%s'", ssid);
   int retry = 0;
-  while (WiFi.status() != WL_CONNECTED && retry < 14) {
+  while ((WiFi.status() != WL_CONNECTED || WiFi.localIP().toString() == "0.0.0.0" || WiFi.localIP().toString() == "255.255.255.255") && retry < 30) {
     delay(500);
     Serial.print(".");
     retry++;
   }
 
-  // If Static IP failed to associate on Windows Hotspot, retry via standard DHCP
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("\n[Wi-Fi] Static IP pending. Negotiating via standard Hotspot DHCP...");
-    WiFi.disconnect(true);
-    delay(300);
-    WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE); // Clear static IP to use DHCP
-    WiFi.begin(ssid, password);
-    retry = 0;
-    while (WiFi.status() != WL_CONNECTED && retry < 18) {
-      delay(500);
-      Serial.print(".");
-      retry++;
-    }
-  }
-
-  if (WiFi.status() == WL_CONNECTED) {
+  if (WiFi.status() == WL_CONNECTED && WiFi.localIP().toString() != "0.0.0.0" && WiFi.localIP().toString() != "255.255.255.255") {
     Serial.println("\n========================================================");
     Serial.println("🎉 ESP32-CAM CONNECTED TO HOTSPOT SUCCESSFULLY!");
     Serial.printf ("   Connected SSID: %s\n", ssid);
