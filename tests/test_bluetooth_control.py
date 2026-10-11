@@ -10,6 +10,12 @@ import time
 import serial
 import serial.tools.list_ports as lp
 
+# Ensure UTF-8 output on Windows terminals (prevents UnicodeEncodeError)
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 def scan_ports():
     print("\n🔍 Scanning available Serial / Bluetooth COM ports...")
     ports = list(lp.comports())

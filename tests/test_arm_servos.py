@@ -9,13 +9,19 @@ import sys
 import time
 import socket
 
+# Ensure UTF-8 output on Windows terminals (prevents UnicodeEncodeError)
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 DEVKIT_IP = "192.168.137.204"
 DEVKIT_PORT = 8888
 ser_conn = None
 is_serial = False
 
 target_arg = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("-") else None
-if "--bt" in sys.argv:
+if not target_arg or "--bt" in sys.argv:
     try:
         import serial.tools.list_ports as lp
         for p in lp.comports():
@@ -23,7 +29,8 @@ if "--bt" in sys.argv:
             if "BTHENUM" in info or "BLUETOOTH" in info or "SMART_WASTE" in info or "STANDARD" in info:
                 target_arg = p.device
                 break
-    except Exception: pass
+    except Exception:
+        pass
 
 if target_arg and target_arg.upper().startswith("COM"):
     try:

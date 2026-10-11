@@ -148,7 +148,9 @@ void setServoAngle(uint8_t channel, int angle) {
 }
 
 void smoothMoveServo(uint8_t channel, int targetAngle, int stepDelay) {
-  if (channel >= 6 || !pcaReady)
+  if (channel >= 6)
+    return;
+  if (!ensurePcaReady())
     return;
   targetAngle = constrain(targetAngle, 0, 180);
   int startAngle = currentAngles[channel];
@@ -626,7 +628,7 @@ inline bool isDegradableWaste(String wasteClass) {
 }
 
 void armHome() {
-  if (!pcaReady)
+  if (!ensurePcaReady())
     return;
   Serial.println(">>> [ARM] Moving to HOME position...");
 
@@ -754,7 +756,7 @@ void dropIntoLeftNonDegradableBin(int offsetMs) {
 // ==============================================================================
 void executeSmartTargetPickSequence(String wasteClass, String offsetDir,
                                     int offsetMs) {
-  if (!pcaReady) {
+  if (!ensurePcaReady()) {
     Serial.println("[ARM ERROR] PCA9685 not ready!");
     return;
   }
@@ -1017,10 +1019,23 @@ void executeCommand(String cmd) {
       int val = cmd.substring(firstColon + 1).toInt();
       if (ch == 0) {
         rotateBaseToAngle(val);
+      } else if (ARM_NUM_SERVOS == 5 && ch == 5) {
+        // Map 6-DOF standard claw channel (CH5) to 5-DOF claw channel (CH4)
+        setServoAngle(CH_GRIPPER, val);
       } else {
         setServoAngle(ch, val);
       }
     }
+  } else if (cmd == "ARM:CLAW:OPEN" || cmd == "ARM:GRIPPER:OPEN") {
+    smoothMoveServo(CH_GRIPPER, 30, 8);
+    Serial.println("[ARM] Claw OPEN (30°)");
+  } else if (cmd == "ARM:CLAW:CLOSE" || cmd == "ARM:GRIPPER:CLOSE" || cmd == "ARM:CLAW:CLAMP" || cmd == "ARM:GRIPPER:CLAMP") {
+    smoothMoveServo(CH_GRIPPER, 105, 8);
+    Serial.println("[ARM] Claw CLAMPED (105°)");
+  } else if (cmd.startsWith("ARM:CLAW:") || cmd.startsWith("ARM:GRIPPER:")) {
+    int val = cmd.substring(cmd.lastIndexOf(':') + 1).toInt();
+    smoothMoveServo(CH_GRIPPER, val, 8);
+    Serial.printf("[ARM] Gripper set to %d°\n", val);
 
   } else if (cmd.startsWith("ARM:BASE:")) {
     if (cmd == "ARM:BASE:STOP") {

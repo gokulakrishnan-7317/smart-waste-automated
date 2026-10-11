@@ -32,6 +32,12 @@ import socket
 import time
 import sys
 
+# Ensure UTF-8 output on Windows terminals (prevents UnicodeEncodeError)
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 DEVKIT_IP   = "192.168.137.204"
 DEVKIT_PORT = 8888
 ser_conn    = None
@@ -39,7 +45,7 @@ is_serial   = False
 
 # Check for Bluetooth / Serial override or auto-detection
 target_arg = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("-") else None
-if "--bt" in sys.argv:
+if not target_arg or "--bt" in sys.argv:
     try:
         import serial.tools.list_ports as lp
         for p in lp.comports():
@@ -47,7 +53,8 @@ if "--bt" in sys.argv:
             if "BTHENUM" in info or "BLUETOOTH" in info or "SMART_WASTE" in info or "STANDARD" in info:
                 target_arg = p.device
                 break
-    except Exception: pass
+    except Exception:
+        pass
 
 if target_arg and target_arg.upper().startswith("COM"):
     try:
@@ -228,11 +235,14 @@ def main():
 
             # ── Claw Open / Close Toggle ─────────────────────
             elif raw == "C":
+                global claw_is_open
                 claw_is_open = not claw_is_open
                 angle = 30 if claw_is_open else 105
                 action = "OPEN" if claw_is_open else "CLOSED (Clamped)"
-                print(f"  🦀 Claw {action} (CH5 → {angle}°)")
-                send_cmd(f"ARM:SERVO:5:{angle}")
+                print(f"  🦀 Claw {action} ({angle}°)")
+                send_cmd(f"ARM:GRIPPER:{angle}")
+                send_cmd(f"ARM:SERVO:4:{angle}", silent=True)
+                send_cmd(f"ARM:SERVO:5:{angle}", silent=True)
 
             # ── Calibrate 180° Rear Turn Duration ────────────
             elif raw == "K":
@@ -307,7 +317,7 @@ def main():
             else:
                 print(f"  ❓ Unknown: '{raw}'  –  valid drive keys: W S A D X WA WD SA SD")
 
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, EOFError):
             send_cmd("CMD:STOP")
             print("\n  Interrupted – motors stopped.")
             break
