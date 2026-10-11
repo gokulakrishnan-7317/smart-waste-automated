@@ -8,6 +8,10 @@ from pathlib import Path
 from typing import Optional
 
 import cv2, numpy as np
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", line_buffering=True)
 try:
     import torch
     from ultralytics import YOLO
@@ -58,16 +62,21 @@ class RobotSerial:
             if self.ser and self.ser.is_open:
                 try: self.ser.close()
                 except: pass
-            self.ser=serial.Serial(self.port, self.baudrate, timeout=0.08)
+            print(f"  [Connecting BT Serial] Opening {self.port} at {self.baudrate} baud...")
+            self.ser=serial.Serial(self.port, self.baudrate, timeout=0.1)
+            self.last_rx = time.time()
             print(f"  [BT Serial Connected] DevKit active on {self.port} (Zero IP needed!)")
-        except Exception:
+            try:
+                self.ser.write(b"CMD:PING\n")
+                self.ser.flush()
+            except Exception: pass
+        except Exception as e:
+            print(f"  [BT Connect Warning] Could not open {self.port}: {e}")
             self.ser = None
 
     @property
     def is_connected(self):
-        if not self.ser or not self.ser.is_open:
-            return False
-        return self.last_rx > 0 and (time.time() - self.last_rx) < 3.5
+        return bool(self.ser and self.ser.is_open)
 
     def send(self, cmd, force=False):
         now=time.time()
@@ -78,7 +87,11 @@ class RobotSerial:
                 self.ser.flush()
                 self.last_cmd=cmd; self.last_time=now
                 print(f"  BT -> {self.port}  {cmd}")
-            except Exception as e: print(f"  BT err: {e}")
+            except Exception as e:
+                print(f"  BT send err: {e}")
+                try: self.ser.close()
+                except: pass
+                self.ser = None
 
     def poll_telemetry(self):
         if not self.ser or not self.ser.is_open: return False
@@ -86,8 +99,9 @@ class RobotSerial:
         try:
             while self.ser.in_waiting > 0:
                 line = self.ser.readline().decode("utf-8", errors="ignore").strip()
-                if line.startswith("TELEM:"):
+                if line:
                     self.last_rx = time.time()
+                if line.startswith("TELEM:"):
                     received = True
                     for part in line[6:].split(","):
                         if "=" in part:
@@ -103,31 +117,37 @@ class RobotSerial:
                                 elif k=="fix": t["fix"]=int(v)
                                 elif k=="sats": t["sats"]=int(v)
                             except ValueError: pass
-        except Exception: pass
+        except Exception as e:
+            print(f"  BT poll err: {e}")
+            try: self.ser.close()
+            except: pass
+            self.ser = None
         return received
 
     def close(self):
         try:
             if self.ser and self.ser.is_open: self.ser.close()
         except Exception: pass
+        self.ser = None
 
 def find_bluetooth_port(device_hint="SMART_WASTE_ROBOT"):
     try:
         import serial
         import serial.tools.list_ports as lp
         ports = list(lp.comports())
+        all_devices = [p.device.upper() for p in ports]
+        # COM14 is the confirmed active Bluetooth port for SMART_WASTE_ROBOT
+        if "COM14" in all_devices:
+            return "COM14"
+
         bt_ports = [p.device for p in ports if "BTHENUM" in p.hwid.upper() or "BLUETOOTH" in p.description.upper()]
         def port_num(d):
             try: return int(d.upper().replace("COM", ""))
             except: return 0
         bt_ports.sort(key=port_num, reverse=True)
-        for p in bt_ports:
-            try:
-                s = serial.Serial(p, 115200, timeout=0.8)
-                s.close()
-                return p
-            except Exception:
-                continue
+        if bt_ports:
+            return bt_ports[0]
+
         # Fallback to USB serial (CH340 or CP210)
         for p in ports:
             info = f"{p.device} {p.description}".upper()
@@ -312,13 +332,18 @@ def reconnect_worker():
     global robot
     while True:
         try:
-            if robot and not robot.is_connected:
-                if isinstance(robot, RobotSerial):
-                    if not robot.ser or not robot.ser.is_open:
+            if not robot or not robot.is_connected:
+                bt_port = find_bluetooth_port()
+                if bt_port:
+                    if not robot or not isinstance(robot, RobotSerial):
+                        robot = RobotSerial(bt_port)
+                    else:
                         robot.connect()
+                    shared_state["devkit_online"] = bool(robot and robot.is_connected)
+                    shared_state["devkit_ip"] = bt_port
         except Exception:
             pass
-        time.sleep(3.5)
+        time.sleep(2.5)
 
 def inference_thread():
     global HAVE_YOLO, torch, YOLO
@@ -521,6 +546,10 @@ async def index():
 @app.get("/video_feed")
 def video_feed():
     return StreamingResponse(annotated_frames(),media_type="multipart/x-mixed-replace; boundary=frame")
+
+@app.get("/api/state")
+def get_state():
+    return shared_state
 
 @app.websocket("/ws")
 async def ws_endpoint(ws:WebSocket):
