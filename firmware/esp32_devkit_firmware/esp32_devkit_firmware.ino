@@ -424,10 +424,8 @@ void sendTelemetry() {
   snprintf(teleBuf, sizeof(teleBuf), "TELEM:DIST=%.1f,OBST=%d", 
            dist, obstacleNear ? 1 : 0);
 
-  // Send via Bluetooth Serial if connected
-  if (SerialBT.hasClient()) {
-    SerialBT.println(teleBuf);
-  }
+  // Send via Bluetooth Serial (safe & non-blocking)
+  SerialBT.println(teleBuf);
   // Also send via USB Serial (for direct cable / serial monitor)
   Serial.println(teleBuf);
 }
@@ -1070,6 +1068,7 @@ void executeCommand(String cmd) {
     sendTelemetry();
   } else if (cmd == "CMD:PING") {
     SerialBT.println("TELEM:PONG");
+    Serial.println("TELEM:PONG");
   } else if (cmd == "CMD:I2C_SCAN") {
     Wire.setTimeOut(50);
     Wire.beginTransmission(0x40);
@@ -1155,3 +1154,6 @@ void loop() {
     Serial.println("⚠️ [SAFETY] Command timeout! All motors stopped.");
   }
 }
+
+
+

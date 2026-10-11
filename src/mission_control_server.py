@@ -78,8 +78,8 @@ class RobotSerial:
     def is_connected(self):
         if not self.ser or not self.ser.is_open:
             return False
-        # Heartbeat watchdog: if no telemetry/pong received for > 2.5s, device is offline!
-        return self.last_rx > 0 and (time.time() - self.last_rx) < 2.5
+        # Heartbeat watchdog: allow up to 8.0s for Bluetooth RFCOMM buffering
+        return self.last_rx > 0 and (time.time() - self.last_rx) < 8.0
 
     def send(self, cmd, force=False):
         now=time.time()
@@ -138,18 +138,42 @@ def find_bluetooth_port(device_hint="SMART_WASTE_ROBOT"):
         import serial
         import serial.tools.list_ports as lp
         ports = list(lp.comports())
-        all_devices = [p.device.upper() for p in ports]
-        # COM14 is the confirmed active Bluetooth port for SMART_WASTE_ROBOT
-        if "COM14" in all_devices:
-            return "COM14"
 
-        bt_ports = [p.device for p in ports if "BTHENUM" in p.hwid.upper() or "BLUETOOTH" in p.description.upper()]
+        # 1. First priority: SMART_WASTE_ROBOT Bluetooth port (MAC: B0CBD80F8816)
+        for p in ports:
+            desc = f"{p.device} {p.description} {p.hwid}".upper()
+            if "B0CBD80F8816" in desc:
+                print(f"  [Auto-Detect] Found SMART_WASTE_ROBOT on {p.device}")
+                return p.device
+
+        # 2. Check for direct USB cable connection (CP210x, CH340, FTDI, etc.)
+        for p in ports:
+            desc = f"{p.device} {p.description} {p.hwid}".upper()
+            if any(chip in desc for chip in ["CP210", "CH340", "USB-SERIAL", "FTDI", "PROLIFIC", "SILICON LABS"]):
+                print(f"  [Auto-Detect] Found USB Serial DevKit on {p.device}: {p.description}")
+                return p.device
+
+        # 3. Check for COM14 or device hint
+        for p in ports:
+            desc = f"{p.device} {p.description} {p.hwid}".upper()
+            if "COM14" == p.device.upper() or device_hint.upper() in desc:
+                return p.device
+
+        # 3. Filter out known audio headsets/earbuds
+        exclude_macs = ["12254FB5D5BA", "FEE5E937469C", "B56B2C66887E"]
+        valid_bt = []
+        for p in ports:
+            desc = f"{p.device} {p.description} {p.hwid}".upper()
+            if ("BTHENUM" in desc or "BLUETOOTH" in desc) and not any(m in desc for m in exclude_macs):
+                if "LOCALMFG&0000" not in desc:
+                    valid_bt.append(p.device)
+
         def port_num(d):
             try: return int(d.upper().replace("COM", ""))
             except: return 0
-        bt_ports.sort(key=port_num, reverse=True)
-        if bt_ports:
-            return bt_ports[0]
+        valid_bt.sort(key=port_num, reverse=True)
+        if valid_bt:
+            return valid_bt[0]
 
     except Exception:
         pass
@@ -324,8 +348,8 @@ def telemetry_worker():
                 if now - last_query >= 0.8:
                     robot.send("CMD:TELEMETRY")
                     last_query = now
-                if not conn and (now - robot.last_rx > 3.5):
-                    print("  [DevKit Disconnected] Heartbeat timeout. Closing port for clean reconnect.")
+                if not conn and (now - robot.last_rx > 10.0):
+                    print("  [DevKit Disconnected] Heartbeat timeout (>10s). Closing port for clean reconnect.")
                     robot.close()
             elif isinstance(robot, RobotUDP):
                 if now - last_query >= 0.8:
