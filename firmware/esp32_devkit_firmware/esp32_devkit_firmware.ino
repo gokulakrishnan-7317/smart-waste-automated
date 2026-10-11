@@ -25,7 +25,7 @@
 
 #include <Adafruit_PWMServoDriver.h>
 #include <Wire.h>
-#include "BluetoothSerial.h"
+#include <BluetoothSerial.h>
 #include "soc/soc.h"             // Power/Brownout control
 #include "soc/rtc_cntl_reg.h"    // Power/Brownout control
 
