@@ -7,7 +7,7 @@ import subprocess
 # ==============================================================================
 # ESP32-CAM Video Stream URL
 # ==============================================================================
-DEFAULT_CAM_IP = "192.168.137.200"
+DEFAULT_CAM_IP = "192.168.137.71"
 
 def get_cam_stream_url(default_ip=DEFAULT_CAM_IP):
     """Auto-detects ESP32-CAM stream (port 80 or 81) or falls back to default IP."""

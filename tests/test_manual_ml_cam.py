@@ -26,7 +26,7 @@ ROOT_DIR = PROJECT_ROOT
 # ==============================================================================
 # DEFAULT HARDWARE CONFIGURATION
 # ==============================================================================
-DEFAULT_ESP32_CAM_URL = "http://192.168.137.200:81/stream"      # ESP32-CAM Fixed Hotspot Stream URL
+DEFAULT_ESP32_CAM_URL = "http://192.168.137.71:81/stream"      # ESP32-CAM Leased Hotspot Stream URL
 DEFAULT_DEVKIT_IP     = "192.168.137.204"                    # ESP32 DevKit IP
 DEFAULT_DEVKIT_PORT   = 8888                               # UDP Port on ESP32 DevKit
 

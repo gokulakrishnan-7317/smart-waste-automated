@@ -30,6 +30,7 @@
 #include "soc/soc.h"             // Power / brownout control
 #include "soc/rtc_cntl_reg.h"    // Power / brownout control
 #include "esp_http_server.h"
+#include <ESPmDNS.h>
 #include <lwip/sockets.h>
 
 // ------------------------------------------------------------------------------
@@ -90,7 +91,7 @@ static esp_err_t stream_handler(httpd_req_t *req) {
   esp_err_t res = ESP_OK;
   size_t _jpg_buf_len = 0;
   uint8_t * _jpg_buf = NULL;
-  char * part_buf[64];
+  char part_buf[64];
 
   res = httpd_resp_set_type(req, _STREAM_CONTENT_TYPE);
   if (res != ESP_OK) {
@@ -131,8 +132,8 @@ static esp_err_t stream_handler(httpd_req_t *req) {
     }
 
     if (res == ESP_OK) {
-      size_t hlen = snprintf((char *)part_buf, 64, _STREAM_PART, _jpg_buf_len);
-      res = httpd_resp_send_chunk(req, (const char *)part_buf, hlen);
+      size_t hlen = snprintf(part_buf, sizeof(part_buf), _STREAM_PART, _jpg_buf_len);
+      res = httpd_resp_send_chunk(req, part_buf, hlen);
     }
     if (res == ESP_OK) {
       res = httpd_resp_send_chunk(req, (const char *)_jpg_buf, _jpg_buf_len);
@@ -348,18 +349,18 @@ void setup() {
     s->set_gain_ctrl(s, 1);      // 0 = disable , 1 = enable
   }
 
-  // 3. Connect to Laptop Hotspot via Native DHCP
-  WiFi.mode(WIFI_STA);
+  // 3. Connect to Laptop Hotspot with Auto-Reconnect & mDNS
+  WiFi.mode(WIFI_AP_STA);             // Dual Mode: Allows STA reconnect while AP is available
   WiFi.setSleep(false);               // Disable modem sleep for ultra-low latency streaming
-  esp_wifi_set_ps(WIFI_PS_NONE);      // Full power transmission
-  WiFi.setTxPower(WIFI_POWER_19_5dBm);
+  esp_wifi_set_ps(WIFI_PS_NONE);
+  WiFi.setTxPower(WIFI_POWER_15dBm);  // Safe RF power (prevents voltage dip / brownout reboots!)
   WiFi.setAutoReconnect(true);
 
   WiFi.begin(ssid, password);
 
   Serial.printf("\nConnecting to Hotspot '%s'", ssid);
   int retry = 0;
-  while ((WiFi.status() != WL_CONNECTED || WiFi.localIP().toString() == "0.0.0.0" || WiFi.localIP().toString() == "255.255.255.255") && retry < 30) {
+  while ((WiFi.status() != WL_CONNECTED || WiFi.localIP().toString() == "0.0.0.0" || WiFi.localIP().toString() == "255.255.255.255") && retry < 25) {
     delay(500);
     Serial.print(".");
     retry++;
@@ -371,15 +372,18 @@ void setup() {
     Serial.printf ("   Connected SSID: %s\n", ssid);
     Serial.printf ("   Assigned IP   : %s\n", WiFi.localIP().toString().c_str());
     Serial.printf ("   Stream URL    : http://%s:81/stream\n", WiFi.localIP().toString().c_str());
+    if (MDNS.begin("smartwastecam")) {
+      MDNS.addService("http", "tcp", 81);
+      Serial.println("   mDNS Active   : http://smartwastecam.local:81/stream");
+    }
     Serial.println("========================================================");
   } else {
     Serial.println("\n========================================================");
-    Serial.println("⚠️ Could not connect to Hotspot. Starting Direct AP Mode...");
-    WiFi.mode(WIFI_AP);
+    Serial.println("⚠️ Hotspot pending. Starting Direct AP Mode (Standby)...");
     WiFi.softAPConfig(ap_IP, ap_gateway, ap_subnet);
     WiFi.softAP(ap_ssid, ap_password);
     Serial.printf ("   Hotspot SSID : %s (Password: %s)\n", ap_ssid, ap_password);
-    Serial.printf ("   Stream URL   : http://%s:81/stream\n", WiFi.softAPIP().toString().c_str());
+    Serial.printf ("   Direct Stream: http://%s:81/stream\n", WiFi.softAPIP().toString().c_str());
     Serial.println("========================================================");
   }
 
@@ -395,13 +399,13 @@ void loop() {
     startCameraServer();
   }
 
-  // Auto-reconnect watchdog if connection drops
+  // Persistent self-healing Wi-Fi watchdog
   static unsigned long lastCheck = 0;
-  if (millis() - lastCheck > 5000) {
+  if (millis() - lastCheck > 6000) {
     lastCheck = millis();
-    if (WiFi.getMode() == WIFI_STA && WiFi.status() != WL_CONNECTED) {
-      Serial.println("[Wi-Fi Watchdog] Reconnecting to Hotspot...");
-      WiFi.reconnect();
+    if (WiFi.status() != WL_CONNECTED) {
+      Serial.println("[Wi-Fi Watchdog] Scanning & reconnecting to Hotspot 'AADHIDHYA'...");
+      WiFi.begin(ssid, password);
     }
   }
 

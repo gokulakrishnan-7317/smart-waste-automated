@@ -25,7 +25,7 @@ ROOT_DIR = PROJECT_ROOT
 # CONFIGURATION
 # ============================================================================
 # 1. IP Addresses (Set according to your Laptop Hotspot / Local Network)
-ESP32_CAM_STREAM_URL = "http://192.168.137.200:81/stream"  # Fixed Static IP on Hotspot (fallback: 192.168.4.1)
+ESP32_CAM_STREAM_URL = "http://192.168.137.71:81/stream"  # Leased Hotspot Stream URL
 ESP32_DEVKIT_IP      = "192.168.137.204"                 # ESP32 DevKit UDP fallback IP
 ESP32_DEVKIT_PORT    = 8888                              # UDP Port on ESP32
 

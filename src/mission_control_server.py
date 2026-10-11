@@ -29,7 +29,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent if SCRIPT_DIR.name == "src" else SCRIPT_DIR
 ROOT_DIR = PROJECT_ROOT
 
-ESP32_CAM_STREAM_URL = "http://192.168.137.200:81/stream"  # Permanent Fixed Static IP on Hotspot
+ESP32_CAM_STREAM_URL = "http://192.168.137.71:81/stream"  # Leased/Assigned IP on Hotspot
 ESP32_DEVKIT_IP      = "192.168.137.204"                 # ESP32 DevKit UDP fallback IP
 ESP32_DEVKIT_PORT    = 8888
 DEFAULT_WEIGHTS_PATH = str(ROOT_DIR / "models" / "best_trash_yolov8m.pt")
@@ -203,7 +203,7 @@ robot = None
 def stream_worker(url:str):
     import urllib.request
     candidates = [url]
-    for fb in ["http://192.168.137.200:81/stream", "http://192.168.4.1:81/stream", "http://192.168.137.200/stream"]:
+    for fb in ["http://smartwastecam.local:81/stream", "http://smartwastecam.local/stream", "http://192.168.137.71:81/stream", "http://192.168.137.71/stream", "http://192.168.137.145:81/stream", "http://192.168.137.145/stream", "http://192.168.137.129:81/stream", "http://192.168.137.137:81/stream", "http://192.168.137.183:81/stream", "http://192.168.137.200:81/stream", "http://192.168.4.1:81/stream"]:
         if fb not in candidates:
             candidates.append(fb)
     if ":81" in url:
@@ -355,7 +355,21 @@ def reconnect_worker():
                     shared_state["devkit_online"] = False
         except Exception:
             pass
-        time.sleep(2.5)
+        time.sleep(5.0)
+
+def hotspot_watchdog():
+    script_path = str(ROOT_DIR / "scripts" / "start_hotspot.ps1")
+    while True:
+        try:
+            if not shared_state.get("cam_online", False):
+                arp = subprocess.check_output("ipconfig", shell=True).decode("utf-8", errors="ignore")
+                if "192.168.137.1" not in arp and os.path.exists(script_path):
+                    print("  [Hotspot Watchdog] Mobile Hotspot offline. Starting AADHIDHYA hotspot...")
+                    subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", script_path],
+                                   capture_output=True, timeout=8)
+        except Exception:
+            pass
+        time.sleep(12)
 
 def inference_thread():
     global HAVE_YOLO, torch, YOLO
@@ -517,7 +531,7 @@ def auto_detect():
     cam_url = shared_state["cam_url"]
 
     # 1. Probe static/fixed IPs first
-    probe_ips = ["192.168.137.200", "192.168.4.1"]
+    probe_ips = ["192.168.137.71", "192.168.137.145", "192.168.137.129", "192.168.137.137", "192.168.137.183", "192.168.137.200", "192.168.4.1"]
     try:
         arp=subprocess.check_output("arp -a",shell=True).decode("utf-8",errors="ignore")
         in_hs=False
@@ -651,6 +665,7 @@ async def startup():
     threading.Thread(target=stream_worker,args=(ESP32_CAM_STREAM_URL,),daemon=True).start()
     threading.Thread(target=telemetry_worker,daemon=True).start()
     threading.Thread(target=reconnect_worker,daemon=True).start()
+    threading.Thread(target=hotspot_watchdog,daemon=True).start()
     threading.Thread(target=inference_thread,daemon=True).start()
     print("[Server] Mission Control started at http://localhost:8000")
 
