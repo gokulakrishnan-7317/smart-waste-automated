@@ -151,11 +151,6 @@ def find_bluetooth_port(device_hint="SMART_WASTE_ROBOT"):
         if bt_ports:
             return bt_ports[0]
 
-        # Fallback to USB serial (CH340 or CP210)
-        for p in ports:
-            info = f"{p.device} {p.description}".upper()
-            if "CH340" in info or "CP210" in info or "USB-SERIAL" in info:
-                return p.device
     except Exception:
         pass
     return None
