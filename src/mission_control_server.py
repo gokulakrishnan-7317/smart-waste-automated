@@ -162,12 +162,10 @@ def find_bluetooth_port(device_hint="SMART_WASTE_ROBOT"):
             if "B0CBD80F8816" in desc:
                 return p.device
 
-        # 2. Prefer COM15 over COM14 if present (COM15 is the outgoing RFCOMM link)
+        # 2. Prefer COM15 if present (COM15 is the outgoing RFCOMM link to SMART_WASTE_ROBOT)
         all_devs = [p.device.upper() for p in ports]
         if "COM15" in all_devs:
             return "COM15"
-        if "COM14" in all_devs:
-            return "COM14"
 
         # 3. Check for direct USB cable connection (CP210x, CH340, FTDI, etc.)
         for p in ports:

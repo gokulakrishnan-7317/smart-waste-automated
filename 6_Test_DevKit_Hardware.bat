@@ -9,7 +9,7 @@ echo   Connection: Bluetooth Serial ("SMART_WASTE_ROBOT") / UDP 192.168.137.204
 echo =========================================================================
 echo.
 if "%~1"=="" (
-    python tests/test_devkit_control.py COM14
+    python tests/test_devkit_control.py COM15
 ) else (
     python tests/test_devkit_control.py %*
 )
