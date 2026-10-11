@@ -158,7 +158,7 @@ def find_bluetooth_port(device_hint="SMART_WASTE_ROBOT"):
                 return p.device
     except Exception:
         pass
-    return "COM14"
+    return None
 
 class RobotUDP:
     def __init__(self, ip, port):
@@ -347,12 +347,17 @@ def reconnect_worker():
             if not robot or not robot.is_connected:
                 bt_port = find_bluetooth_port()
                 if bt_port:
-                    if not robot or not isinstance(robot, RobotSerial):
+                    if not robot or not isinstance(robot, RobotSerial) or getattr(robot, "port", None) != bt_port:
+                        if robot:
+                            try: robot.close()
+                            except: pass
                         robot = RobotSerial(bt_port)
                     else:
                         robot.connect()
                     shared_state["devkit_online"] = bool(robot and robot.is_connected)
                     shared_state["devkit_ip"] = bt_port
+                else:
+                    shared_state["devkit_online"] = False
         except Exception:
             pass
         time.sleep(2.5)
