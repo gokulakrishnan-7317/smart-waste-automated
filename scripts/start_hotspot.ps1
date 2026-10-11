@@ -9,9 +9,9 @@ Function Await($WinRtTask, $ResultType) {
 }
 
 try {
-    $profile = [Windows.Networking.Connectivity.NetworkInformation,Windows.Networking.Connectivity,ContentType=WindowsRuntime]::GetInternetConnectionProfile()
-    if ($null -ne $profile) {
-        $tetheringManager = [Windows.Networking.NetworkOperators.NetworkOperatorTetheringManager,Windows.Networking.NetworkOperators,ContentType=WindowsRuntime]::CreateFromConnectionProfile($profile)
+    $connectionProfile = [Windows.Networking.Connectivity.NetworkInformation,Windows.Networking.Connectivity,ContentType=WindowsRuntime]::GetInternetConnectionProfile()
+    if ($null -ne $connectionProfile) {
+        $tetheringManager = [Windows.Networking.NetworkOperators.NetworkOperatorTetheringManager,Windows.Networking.NetworkOperators,ContentType=WindowsRuntime]::CreateFromConnectionProfile($connectionProfile)
         if ($tetheringManager.TetheringOperationalState -ne "On") {
             Write-Host "Enabling Mobile Hotspot..."
             $asyncOp = $tetheringManager.StartTetheringAsync()
