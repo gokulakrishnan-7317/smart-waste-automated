@@ -348,31 +348,59 @@ void setup() {
     s->set_gain_ctrl(s, 1);      // 0 = disable , 1 = enable
   }
 
-  // 3. Connect to Laptop Hotspot with Fixed Static IP (Zero Latency Mode)
-  WiFi.mode(WIFI_AP_STA);
-  WiFi.setSleep(false);               // CRITICAL: Disable modem sleep to eliminate latency & freezing
-  esp_wifi_set_ps(WIFI_PS_NONE);      // CRITICAL: Continuous full-power RF transmission
-  WiFi.softAPConfig(ap_IP, ap_gateway, ap_subnet);
-  WiFi.softAP(ap_ssid, ap_password);
-
-  WiFi.persistent(true);
-  WiFi.setAutoReconnect(true);
-  WiFi.disconnect(false);
-  WiFi.config(static_IP, gateway, subnet, dns);
+  // 3. Connect to Laptop Hotspot with DHCP Fallback & Direct AP
+  WiFi.mode(WIFI_STA);
+  WiFi.setSleep(false);               // Disable modem sleep for ultra-low latency streaming
+  esp_wifi_set_ps(WIFI_PS_NONE);      // Full power transmission
   WiFi.setTxPower(WIFI_POWER_19_5dBm);
+  WiFi.setAutoReconnect(true);
+
+  // Try Static IP first
+  WiFi.config(static_IP, gateway, subnet, dns);
   WiFi.begin(ssid, password);
-  delay(200);
 
-  Serial.println("\n========================================================");
-  Serial.println("🎉 ESP32-CAM PERMANENT FIXED STATIC IP ACTIVE!");
-  Serial.printf ("   Connecting to Hotspot : %s\n", ssid);
-  Serial.println("   ----------------------------------------------------");
-  Serial.println("   ★ Fixed Hotspot Stream : http://192.168.137.200:81/stream");
-  Serial.println("   ★ Fixed Direct AP Stream: http://192.168.4.1:81/stream");
-  Serial.println("   (IP Address is LOCKED and will NEVER change on reboot!)");
-  Serial.println("========================================================");
+  Serial.printf("\nConnecting to Hotspot '%s'...", ssid);
+  int retry = 0;
+  while (WiFi.status() != WL_CONNECTED && retry < 14) {
+    delay(500);
+    Serial.print(".");
+    retry++;
+  }
 
-  // Immediately start high-performance streaming server!
+  // If Static IP failed to associate on Windows Hotspot, retry via standard DHCP
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("\n[Wi-Fi] Static IP pending. Negotiating via standard Hotspot DHCP...");
+    WiFi.disconnect(true);
+    delay(300);
+    WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE); // Clear static IP to use DHCP
+    WiFi.begin(ssid, password);
+    retry = 0;
+    while (WiFi.status() != WL_CONNECTED && retry < 18) {
+      delay(500);
+      Serial.print(".");
+      retry++;
+    }
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\n========================================================");
+    Serial.println("🎉 ESP32-CAM CONNECTED TO HOTSPOT SUCCESSFULLY!");
+    Serial.printf ("   Connected SSID: %s\n", ssid);
+    Serial.printf ("   Assigned IP   : %s\n", WiFi.localIP().toString().c_str());
+    Serial.printf ("   Stream URL    : http://%s:81/stream\n", WiFi.localIP().toString().c_str());
+    Serial.println("========================================================");
+  } else {
+    Serial.println("\n========================================================");
+    Serial.println("⚠️ Could not connect to Hotspot. Starting Direct AP Mode...");
+    WiFi.mode(WIFI_AP);
+    WiFi.softAPConfig(ap_IP, ap_gateway, ap_subnet);
+    WiFi.softAP(ap_ssid, ap_password);
+    Serial.printf ("   Hotspot SSID : %s (Password: %s)\n", ap_ssid, ap_password);
+    Serial.printf ("   Stream URL   : http://%s:81/stream\n", WiFi.softAPIP().toString().c_str());
+    Serial.println("========================================================");
+  }
+
+  // Start high-performance streaming server
   startCameraServer();
 }
 
@@ -384,13 +412,13 @@ void loop() {
     startCameraServer();
   }
 
-  // Ensure hotspot connection with fixed static IP remains active
+  // Auto-reconnect watchdog if connection drops
   static unsigned long lastCheck = 0;
-  if (millis() - lastCheck > 4000) {
+  if (millis() - lastCheck > 5000) {
     lastCheck = millis();
-    if (WiFi.status() != WL_CONNECTED) {
-      WiFi.config(static_IP, gateway, subnet, dns);
-      WiFi.begin(ssid, password);
+    if (WiFi.getMode() == WIFI_STA && WiFi.status() != WL_CONNECTED) {
+      Serial.println("[Wi-Fi Watchdog] Reconnecting to Hotspot...");
+      WiFi.reconnect();
     }
   }
 
