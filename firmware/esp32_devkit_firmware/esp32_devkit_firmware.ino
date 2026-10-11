@@ -10,24 +10,25 @@
  *          D34  [ ]            [ ] RX0 (GPIO 3)  [Skip]
  *          D35  [ ]            [ ] D21 (GPIO 21) -> PCA9685 SDA (I2C Data)
  *  IN3 Fwd D32  [ ]            [ ] D19 (GPIO 19) -> [Free / Not Used]
- *  IN4 Rev D33  [ ]            [ ] D18 (GPIO 18) -> HC-SR04 ECHO (Ultrasonic Echo)
+ *  IN4 Rev D33  [ ]            [ ] D18 (GPIO 18) -> HC-SR04 ECHO (via 1k/2k Divider!)
  *  IN1 Fwd D25  [ ]            [ ] D5  (GPIO 5)  -> HC-SR04 TRIG (Ultrasonic Trigger)
  *  IN2 Rev D26  [ ]            [ ] D17 (GPIO 17) -> [Free]
- *  [Free]  D27  [ ]            [ ] D16 (GPIO 16) -> [Free]
+ *  ENA PWM D27  [ ]            [ ] D16 (GPIO 16) -> [Free]
  *  [Free]  D14  [ ]            [ ] D4  (GPIO 4)  -> [Free]
- *  ENA PWM D12  [ ]            [ ] D2  (GPIO 2)  -> [Onboard LED / Free]
+ *  [Free]  D12  [ ]            [ ] D2  (GPIO 2)  -> [Onboard LED / Free]
  *  ENB PWM D13  [ ]            [ ] D15 (GPIO 15) -> [Free]
  *  GND     GND  [ ]            [ ] GND (GND)     -> Common GND (Battery - & ESP32 GND)
  *  VIN     VIN  [ ]            [ ] 3V3 (3.3V)    -> PCA9685 VCC (Logic Power)
  *               [  MICRO USB   ]
+ *
+ * NOTE ON GPIO 12: ENA has been moved to GPIO 27 to prevent ESP32 boot-strapping issues.
+ * NOTE ON ECHO 5V: Use a voltage divider on HC-SR04 ECHO (ECHO -> 1kΩ -> GPIO 18 -> 2kΩ -> GND).
  * ==============================================================================
  */
 
 #include <Adafruit_PWMServoDriver.h>
 #include <Wire.h>
 #include <BluetoothSerial.h>
-#include "soc/soc.h"             // Power/Brownout control
-#include "soc/rtc_cntl_reg.h"    // Power/Brownout control
 
 // ------------------------------------------------------------------------------
 // 1. BLUETOOTH SERIAL CONFIGURATION (100% Wireless, Zero IP Needed)
@@ -38,49 +39,50 @@ const char *btDeviceName = "SMART_WASTE_ROBOT";
 // ------------------------------------------------------------------------------
 // 2. PCA9685 16-CHANNEL SERVO DRIVER CONFIGURATION (Address 0x40)
 //
-// YOUR ARM SERVO LAYOUT:
-//   CH0 (CH_BASE)        : SG996R  360° CONTINUOUS rotation
-//                          Neutral (STOP) = 1500 μs pulse → ~307 ticks
-//                          CW  rotation  > 1500 μs pulse
-//                          CCW rotation  < 1500 μs pulse
-//   CH1 (CH_SHOULDER)    : SG996R  180° positional  (high torque)
-//   CH2 (CH_ELBOW)       : SG996R  180° positional  (high torque)
-//   CH3 (CH_WRIST_PITCH) : MG90S   180° positional  (small/light)
-//   CH4 (CH_WRIST_ROLL)  : MG90S   180° positional  (small/light)
-//   CH5 (CH_GRIPPER)     : MG90S   180° positional  (small/light)
+// HARDWARE FLEXIBILITY SWITCHES:
+// - ARM_NUM_SERVOS: Set to 5 (standard 5-joint arm) or 6 (adds wrist roll)
+// - BASE_SERVO_IS_CONTINUOUS: Set false for standard MG996R 180° positional servo,
+//                             or true if modified for 360° continuous rotation.
 // ------------------------------------------------------------------------------
+#define ARM_NUM_SERVOS 5             // 5 servos: Base, Shoulder, Elbow, Wrist Pitch, Gripper
+#define BASE_SERVO_IS_CONTINUOUS false // Standard MG996R 180° positional servo
+
+#if (ARM_NUM_SERVOS == 5)
+  #define CH_BASE         0  // MG996R 180° Positional (Center 90°, Left 5°, Right 175°)
+  #define CH_SHOULDER     1  // MG996R 180° Positional (Shoulder pitch)
+  #define CH_ELBOW        2  // MG996R 180° Positional (Elbow pitch)
+  #define CH_WRIST_PITCH  3  // MG90S/MG996R 180° Positional (Wrist tilt)
+  #define CH_GRIPPER      4  // MG90S 180° Positional (Claw: 30° open, 105° clamped)
+  #define CH_WRIST_ROLL   255 // Not connected in 5-DOF configuration
+#else
+  #define CH_BASE         0  // MG996R
+  #define CH_SHOULDER     1  // MG996R
+  #define CH_ELBOW        2  // MG996R
+  #define CH_WRIST_PITCH  3  // MG90S
+  #define CH_WRIST_ROLL   4  // MG90S
+  #define CH_GRIPPER      5  // MG90S
+#endif
+
 Adafruit_PWMServoDriver pca = Adafruit_PWMServoDriver(0x40);
 
 #define SERVO_FREQ 50 // 50 Hz for all analog servos
 
-// SG996R (CH1 & CH2): 500–2500 μs gives full 180° range
+// SG996R (CH1 & CH2 & CH0): 500–2500 μs gives full 180° range
 //   At 50Hz  → 4096 ticks/period (20ms)
 //   1 tick   = 20000μs / 4096 ≈ 4.88 μs
 #define SERVO996_MIN 102 //  500 μs →  0°
 #define SERVO996_MAX 512 // 2500 μs → 180°
 
-// MG90S (CH3 CH4 CH5): standard 1000–2000 μs range
+// MG90S (CH3, CH4, Gripper): standard 1000–2000 μs range
 #define SERVOMG90_MIN 205 // 1000 μs →  0°
 #define SERVOMG90_MAX 410 // 2000 μs → 180°
 
-// SG996R 360° continuous rotation (CH0 BASE):
-//   Neutral STOP  = 1500 μs ≈ 307 ticks
-//   Full CW       = 2000 μs ≈ 410 ticks  (or higher for faster)
-//   Full CCW      = 1000 μs ≈ 205 ticks  (or lower for faster)
+// SG996R 360° continuous rotation settings (only used if BASE_SERVO_IS_CONTINUOUS = true)
 #define BASE_NEUTRAL 307  // 1500 μs → motor stops
 #define BASE_FULL_CW 410  // 2000 μs → max CW speed
 #define BASE_FULL_CCW 205 // 1000 μs → max CCW speed
 
-// 6-DOF Servo Channels on PCA9685
-#define CH_BASE 0        // SG996R 360° CONTINUOUS (base yaw)
-#define CH_SHOULDER 1    // SG996R 180° positional (shoulder pitch)
-#define CH_ELBOW 2       // SG996R 180° positional (elbow pitch)
-#define CH_WRIST_PITCH 3 // MG90S  180° positional (wrist tilt)
-#define CH_WRIST_ROLL 4  // MG90S  180° positional (wrist roll)
-#define CH_GRIPPER 5     // MG90S  180° positional (claw)
-
-// Base 360° continuous rotation settings and bin calibration
-#define BASE_SPEED 60 // % speed (0-100) used for base rotations
+#define BASE_SPEED 60 // % speed (0-100) used for base continuous rotations
 int binRight180Ms = 1100; // ms to rotate 180° CW (Turn Right) to Degradable Bin
 int binLeft180Ms  = 1100; // ms to rotate 180° CCW (Turn Left) to Non-Degradable Bin
 
@@ -90,14 +92,23 @@ void moveForward();
 void moveBackward();
 void steerLeft();
 void steerRight();
+void forwardCurveLeft();
+void forwardCurveRight();
+void backCurveLeft();
+void backCurveRight();
 void armHome();
 void baseStop();
 void baseSetSpeed(int speed);
+void baseRotateCW(int speed, unsigned int durationMs);
+void baseRotateCCW(int speed, unsigned int durationMs);
+void dropIntoRightDegradableBin(int offsetMs = 0);
+void dropIntoLeftNonDegradableBin(int offsetMs = 0);
 void setServoAngle(uint8_t channel, int angle);
 void smoothMoveServo(uint8_t channel, int targetAngle, int stepDelay = 10);
 void rotateBaseToAngle(int targetAngle);
 void executeSmartTargetPickSequence(String wasteClass, String offsetDir, int offsetMs);
 void executePickSequence(String wasteClass);
+void sendTelemetry();
 
 int currentAngles[6] = {-1, -1, -1, -1, -1, -1};
 bool pcaReady = false;
@@ -159,18 +170,27 @@ void smoothMoveServo(uint8_t channel, int targetAngle, int stepDelay) {
 }
 
 // ============================================================
-// BASE 360° CONTINUOUS ROTATION (SG996R) CONTROL
-// speed: -100 (full CCW) … 0 (STOP) … +100 (full CW)
+// BASE ROTATION CONTROL (Positional 180° MG996R or Continuous 360°)
 // ============================================================
+int currentBaseAngle = 90; // Default center pose (90° for positional)
+unsigned long baseRotateEndTime = 0;
+bool baseIsRotating = false;
+
 void baseStop() {
   if (!ensurePcaReady()) return;
+#if BASE_SERVO_IS_CONTINUOUS
   pca.setPWM(CH_BASE, 0, BASE_NEUTRAL);
-  currentAngles[CH_BASE] = 0; // use 0 as "parked / unknown" marker
   Serial.println("[ARM BASE] STOP (neutral 1500us)");
+#else
+  // Positional servo: hold current position
+  setServoAngle(CH_BASE, currentBaseAngle);
+  Serial.println("[ARM BASE 180°] Position held.");
+#endif
 }
 
 void baseSetSpeed(int speed) {
   if (!ensurePcaReady()) return;
+#if BASE_SERVO_IS_CONTINUOUS
   speed = constrain(speed, -100, 100);
   int pulse;
   if (speed == 0) {
@@ -182,71 +202,82 @@ void baseSetSpeed(int speed) {
   }
   pca.setPWM(CH_BASE, 0, pulse);
   Serial.printf("[ARM BASE] Speed=%d%%  pulse=%d ticks\n", speed, pulse);
+#else
+  // Positional servo speed simulation (nudge angle)
+  if (speed > 0) rotateBaseToAngle(constrain(currentBaseAngle + 10, 0, 180));
+  else if (speed < 0) rotateBaseToAngle(constrain(currentBaseAngle - 10, 0, 180));
+#endif
 }
 
 void baseRotateCW(int speed, unsigned int durationMs) {
-  Serial.printf("[ARM BASE] Rotate CW  speed=%d%%  for %d ms\n", speed,
-                durationMs);
+#if BASE_SERVO_IS_CONTINUOUS
+  Serial.printf("[ARM BASE] Rotate CW  speed=%d%%  for %d ms\n", speed, durationMs);
   int safeSpeed = (speed < 0) ? -speed : speed;
   baseSetSpeed(safeSpeed);
   delay(durationMs);
   baseStop();
+#else
+  // Positional servo: CW moves toward Right Bin (175°)
+  Serial.printf("[ARM BASE 180°] Turning RIGHT (CW) to 175°...\n");
+  smoothMoveServo(CH_BASE, 175, 12);
+  currentBaseAngle = 175;
+#endif
 }
 
 void baseRotateCCW(int speed, unsigned int durationMs) {
-  Serial.printf("[ARM BASE] Rotate CCW speed=%d%%  for %d ms\n", speed,
-                durationMs);
+#if BASE_SERVO_IS_CONTINUOUS
+  Serial.printf("[ARM BASE] Rotate CCW speed=%d%%  for %d ms\n", speed, durationMs);
   int safeSpeed = (speed < 0) ? -speed : speed;
   baseSetSpeed(-safeSpeed);
   delay(durationMs);
   baseStop();
+#else
+  // Positional servo: CCW moves toward Left Bin (5°)
+  Serial.printf("[ARM BASE 180°] Turning LEFT (CCW) to 5°...\n");
+  smoothMoveServo(CH_BASE, 5, 12);
+  currentBaseAngle = 5;
+#endif
 }
-
-// ------------------------------------------------------------------------------
-// BASE 360° CONTINUOUS ROTATION TIMED DEGREE ANGLE CONTROLLER WITH AUTO-STOP
-// ------------------------------------------------------------------------------
-int currentBaseAngle = 180; // Default center (0°–360° range)
-unsigned long baseRotateEndTime = 0;
-bool baseIsRotating = false;
 
 void rotateBaseToAngle(int targetAngle) {
   if (!ensurePcaReady()) return;
+#if BASE_SERVO_IS_CONTINUOUS
   targetAngle = constrain(targetAngle, 0, 360);
   int delta = targetAngle - currentBaseAngle;
   if (abs(delta) < 2) {
     baseStop();
     return;
   }
-
-  // Calibration: binRight180Ms is milliseconds for 180° rotation at BASE_SPEED (default ~1100ms)
   float msPerDeg = (float)binRight180Ms / 180.0f;
   unsigned long durationMs = (unsigned long)(abs(delta) * msPerDeg);
   durationMs = constrain(durationMs, 20, 6000);
 
   if (delta > 0) {
     baseSetSpeed(BASE_SPEED); // Clockwise (CW)
-    Serial.printf(">>> [ARM BASE 360°] Rotating CW: %d° -> %d° (%d° turn, %lu ms)...\n",
-                  currentBaseAngle, targetAngle, delta, durationMs);
   } else {
     baseSetSpeed(-BASE_SPEED); // Counter-Clockwise (CCW)
-    Serial.printf(">>> [ARM BASE 360°] Rotating CCW: %d° -> %d° (%d° turn, %lu ms)...\n",
-                  currentBaseAngle, targetAngle, abs(delta), durationMs);
   }
-
   baseRotateEndTime = millis() + durationMs;
   baseIsRotating = true;
   currentBaseAngle = targetAngle;
   currentAngles[CH_BASE] = targetAngle;
+#else
+  // Standard MG996R 180° positional servo
+  targetAngle = constrain(targetAngle, 0, 180);
+  Serial.printf(">>> [ARM BASE 180°] Moving to %d°...\n", targetAngle);
+  smoothMoveServo(CH_BASE, targetAngle, 10);
+  currentBaseAngle = targetAngle;
+  currentAngles[CH_BASE] = targetAngle;
+#endif
 }
 
 // ------------------------------------------------------------------------------
-// 3. MOTOR DRIVER PIN ASSIGNMENTS (SINGLE L298N Driver -> 4 DC Motors)
+// 3. MOTOR DRIVER PIN ASSIGNMENTS (L298N Driver -> 4 DC TT Motors)
 //
-// *** SINGLE L298N WIRING WITH VOLTAGE & SPEED CONTROL VIA ENA / ENB ***
 // Wiring:
 //   L298N OUT1 & OUT2 ──► Left Motors (Front-Left & Rear-Left in parallel)
 //   L298N OUT3 & OUT4 ──► Right Motors (Front-Right & Rear-Right in parallel)
-//   L298N ENA (jumper removed!) ──► GPIO 12 (Left side PWM / voltage control)
+//   L298N ENA (jumper removed!) ──► GPIO 27 (Moved from GPIO 12 to avoid ESP32 boot strapping!)
 //   L298N ENB (jumper removed!) ──► GPIO 13 (Right side PWM / voltage control)
 //   L298N IN1 ──► GPIO 25 (Left Forward)
 //   L298N IN2 ──► GPIO 26 (Left Reverse)
@@ -254,8 +285,12 @@ void rotateBaseToAngle(int targetAngle) {
 //   L298N IN4 ──► GPIO 33 (Right Reverse)
 //   L298N GND ──► Battery (–) AND ESP32 GND (Common Ground!)
 //   L298N 12V ──► Battery (+) (7.4V - 12V)
+//
+// MOTOR CURRENT NOTICE:
+// Each L298N channel handles 2A continuous. Two TT motors in parallel draw ~0.5A idle
+// and up to 1.6A stalled. Ensure the L298N has a heatsink, or use dual L298N boards.
 // ------------------------------------------------------------------------------
-#define ENA 12  // Left Motors Speed/Voltage PWM (GPIO 12)
+#define ENA 27  // Left Motors Speed/Voltage PWM (GPIO 27 - SAFE BOOT PIN)
 #define IN1 25  // Left Motors Forward
 #define IN2 26  // Left Motors Reverse
 #define IN3 32  // Right Motors Forward
@@ -271,20 +306,23 @@ void rotateBaseToAngle(int targetAngle) {
 #define PWM_RES  8    // bits: 0 = stop, 255 = full speed
 
 // ── Yellow TT Gearbox Motor Calibration (Rated: 3V - 6V DC) ──
-// Power supply configuration:
+// Mathematical formula for average motor voltage on L298N:
+//   V_motor_avg = (PWM / 255.0) * (BATTERY_VOLTAGE - L298N_DROP_V)
+// For 12V supply:
+//   V_motor_max = 12.0V - 1.6V = 10.4V
+//   To limit to safe 6.0V max for TT motors:
+//   PWM = (6.0V / 10.4V) * 255 ≈ 147
 const float BATTERY_VOLTAGE = 12.0; // Battery voltage (set to 7.4 if using 2S 18650)
 const float L298N_DROP_V    = 1.6;  // Internal L298N bipolar transistor drop (~1.6V)
 
-// TT Gearbox Deadband & Safety Thresholds:
-// 1. TT plastic gears have internal friction: PWM below 120 produces stall hum
-// 2. Safe Max: Clamped to 205 (~6.0V max) to avoid stripping plastic gears on 12V
-#define TT_MIN_PWM    125  // Minimum starting PWM to overcome gear friction
-#define TT_MAX_PWM    205  // Max safe PWM (prevents exceeding 6.0V on 12V supply)
-#define TT_CRUISE_PWM 165  // Default cruising speed (~5.0V output, high torque)
+#define TT_MIN_PWM    115  // Minimum starting PWM to overcome gearbox friction (~4.7V)
+#define TT_MAX_PWM    148  // Max safe PWM: strictly limits output to ~6.0V on 12V supply
+#define TT_CRUISE_PWM 135  // Default cruising speed (~5.5V output, optimal torque & motor life)
 
 // Converts target voltage (e.g. 5.0V, 6.0V) to 8-bit PWM value (0-255)
 inline int voltageToPWM(float targetVolts) {
   float maxUsableVolts = BATTERY_VOLTAGE - L298N_DROP_V;
+  if (maxUsableVolts <= 0.0f) maxUsableVolts = 10.4f;
   if (targetVolts <= 0.0f) return 0;
   if (targetVolts > 6.0f) targetVolts = 6.0f; // HARD CLAMP: Protect 6V TT motors!
   int pwm = (int)((targetVolts / maxUsableVolts) * 255.0f);
@@ -592,14 +630,20 @@ void armHome() {
     return;
   Serial.println(">>> [ARM] Moving to HOME position...");
 
-  // !! BASE is 360° continuous: send neutral pulse to STOP it !!
+#if BASE_SERVO_IS_CONTINUOUS
   baseStop();
+#else
+  smoothMoveServo(CH_BASE, 90, 10);
+  currentBaseAngle = 90;
+#endif
 
   // Return all positional joints to resting pose
   setServoAngle(CH_GRIPPER, 30);
   delay(120); // open claw
-  setServoAngle(CH_WRIST_ROLL, 90);
-  delay(120); // center roll
+  if (CH_WRIST_ROLL < 6) {
+    setServoAngle(CH_WRIST_ROLL, 90);
+    delay(120); // center roll
+  }
   setServoAngle(CH_WRIST_PITCH, 90);
   delay(120); // level wrist
   setServoAngle(CH_ELBOW, 90);
@@ -611,17 +655,19 @@ void armHome() {
 // ------------------------------------------------------------------------------
 // DEPOSIT INTO RIGHT DUSTBIN (DEGRADABLE / BANANA PEEL · TURN RIGHT 180° CW)
 // ------------------------------------------------------------------------------
-void dropIntoRightDegradableBin(int offsetMs = 0) {
-  // If base was steered CCW (LEFT) by offsetMs during approach:
-  // to reach 180° CW (RIGHT), rotate CW by (binRight180Ms + offsetMs)
-  // If base was steered CW (RIGHT) by offsetMs:
-  // rotate CW by (binRight180Ms - offsetMs)
+void dropIntoRightDegradableBin(int offsetMs) {
+#if BASE_SERVO_IS_CONTINUOUS
   int rotateMs = binRight180Ms + offsetMs;
   rotateMs = max(400, rotateMs);
-
   Serial.printf(">>> [ARM] DEGRADABLE: Turning RIGHT 180° CW towards Right Bin (%d ms)...\n", rotateMs);
   baseRotateCW(BASE_SPEED, rotateMs);
   delay(300);
+#else
+  Serial.println(">>> [ARM 180°] DEGRADABLE: Moving Base to RIGHT BIN (175°)...");
+  smoothMoveServo(CH_BASE, 175, 12);
+  currentBaseAngle = 175;
+  delay(300);
+#endif
 
   // Dip arm into right degradable container
   Serial.println("[ARM] Dipping inside Right Degradable Bin...");
@@ -642,26 +688,34 @@ void dropIntoRightDegradableBin(int offsetMs = 0) {
   smoothMoveServo(CH_WRIST_PITCH, 90, 10);
   delay(300);
 
-  // Return LEFT 180° CCW back to front center
+#if BASE_SERVO_IS_CONTINUOUS
   Serial.printf("[ARM] Returning LEFT 180° CCW to front center (%d ms)...\n", binRight180Ms);
   baseRotateCCW(BASE_SPEED, binRight180Ms);
   delay(300);
+#else
+  Serial.println("[ARM 180°] Returning Base to FRONT CENTER (90°)...");
+  smoothMoveServo(CH_BASE, 90, 12);
+  currentBaseAngle = 90;
+  delay(300);
+#endif
 }
 
 // ------------------------------------------------------------------------------
 // DEPOSIT INTO LEFT DUSTBIN (NON-BIODEGRADABLE · TURN LEFT 180° CCW)
 // ------------------------------------------------------------------------------
-void dropIntoLeftNonDegradableBin(int offsetMs = 0) {
-  // If base was steered CW (RIGHT) by offsetMs during approach:
-  // to reach 180° CCW (LEFT), rotate CCW by (binLeft180Ms + offsetMs)
-  // If base was steered CCW (LEFT) by offsetMs:
-  // rotate CCW by (binLeft180Ms - offsetMs)
+void dropIntoLeftNonDegradableBin(int offsetMs) {
+#if BASE_SERVO_IS_CONTINUOUS
   int rotateMs = binLeft180Ms + offsetMs;
   rotateMs = max(400, rotateMs);
-
   Serial.printf(">>> [ARM] NON-BIODEGRADABLE: Turning LEFT 180° CCW towards Left Bin (%d ms)...\n", rotateMs);
   baseRotateCCW(BASE_SPEED, rotateMs);
   delay(300);
+#else
+  Serial.println(">>> [ARM 180°] NON-BIODEGRADABLE: Moving Base to LEFT BIN (5°)...");
+  smoothMoveServo(CH_BASE, 5, 12);
+  currentBaseAngle = 5;
+  delay(300);
+#endif
 
   // Dip arm into left non-degradable container
   Serial.println("[ARM] Dipping inside Left Non-Degradable Bin...");
@@ -682,10 +736,16 @@ void dropIntoLeftNonDegradableBin(int offsetMs = 0) {
   smoothMoveServo(CH_WRIST_PITCH, 90, 10);
   delay(300);
 
-  // Return RIGHT 180° CW back to front center
+#if BASE_SERVO_IS_CONTINUOUS
   Serial.printf("[ARM] Returning RIGHT 180° CW to front center (%d ms)...\n", binLeft180Ms);
   baseRotateCW(BASE_SPEED, binLeft180Ms);
   delay(300);
+#else
+  Serial.println("[ARM 180°] Returning Base to FRONT CENTER (90°)...");
+  smoothMoveServo(CH_BASE, 90, 12);
+  currentBaseAngle = 90;
+  delay(300);
+#endif
 }
 
 // ==============================================================================
@@ -710,12 +770,15 @@ void executeSmartTargetPickSequence(String wasteClass, String offsetDir,
   // ── Step 1: Base stopped, gripper open, arm lifted ────────────────────
   baseStop();
   smoothMoveServo(CH_GRIPPER, 30, 8);
-  smoothMoveServo(CH_WRIST_ROLL, 90, 8);
+  if (CH_WRIST_ROLL < 6) {
+    smoothMoveServo(CH_WRIST_ROLL, 90, 8);
+  }
   delay(150);
 
-  // ── Step 2: AIM BASE TOWARDS WASTE ITEM (Left / Right Offset from ML) ──
-  offsetMs = constrain(offsetMs, 0, 800);
+  // ── Step 2: AIM BASE TOWARDS WASTE ITEM ─────────────────────────────
   int effectiveOffsetForBin = 0;
+#if BASE_SERVO_IS_CONTINUOUS
+  offsetMs = constrain(offsetMs, 0, 800);
   if (offsetDir == "LEFT" && offsetMs > 0) {
     Serial.printf("[ARM BASE] Aiming LEFT toward item (%d ms CCW)...\n", offsetMs);
     baseRotateCCW(BASE_SPEED, offsetMs);
@@ -729,6 +792,26 @@ void executeSmartTargetPickSequence(String wasteClass, String offsetDir,
   } else {
     Serial.println("[ARM BASE] Item is CENTERED, reaching straight ahead.");
   }
+#else
+  int aimAngle = 90;
+  if (offsetDir == "LEFT") {
+    aimAngle = constrain(90 - (offsetMs / 40), 45, 90);
+    Serial.printf("[ARM BASE 180°] Aiming LEFT toward item to %d°...\n", aimAngle);
+    smoothMoveServo(CH_BASE, aimAngle, 10);
+    currentBaseAngle = aimAngle;
+    delay(200);
+  } else if (offsetDir == "RIGHT") {
+    aimAngle = constrain(90 + (offsetMs / 40), 90, 135);
+    Serial.printf("[ARM BASE 180°] Aiming RIGHT toward item to %d°...\n", aimAngle);
+    smoothMoveServo(CH_BASE, aimAngle, 10);
+    currentBaseAngle = aimAngle;
+    delay(200);
+  } else {
+    smoothMoveServo(CH_BASE, 90, 10);
+    currentBaseAngle = 90;
+    Serial.println("[ARM BASE 180°] Item is CENTERED at 90°, reaching straight ahead.");
+  }
+#endif
 
   // ── Step 3: Reach forward & down to ground level ──────────────────────
   Serial.println("[ARM] Reaching down to ground level...");
@@ -776,9 +859,8 @@ void setup() {
   Serial.println(" Smart Waste Management Robot Controller (ESP32)");
   Serial.println("========================================================");
 
-  // 0. Disable brownout detector & let power supply stabilize on cold boot
-  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); // Prevents cold-boot brownout freeze!
-  delay(1200); // 1.2s delay for power rails to reach stable 3.3V/5.0V
+  // 0. Allow power rails to stabilize on boot (Brownout detector remains active to protect flash memory)
+  delay(1200); // 1.2s delay for power rails to reach stable voltage
 
   // 1. Setup Single L298N Motor Direction Pins (4 pins instead of 8)
   pinMode(IN1, OUTPUT);
@@ -788,9 +870,9 @@ void setup() {
 
   // 2. Setup PWM Enable channels via LEDC (ESP32 hardware PWM)
   //    Frequency: 5 kHz, 8-bit resolution (0-255)
-  //    ENA -> Left motors voltage/speed, ENB -> Right motors voltage/speed
+  //    ENA -> Left motors (GPIO 27), ENB -> Right motors (GPIO 13)
   #if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3)
-    ledcAttach(ENA, PWM_FREQ, PWM_RES);  // ENA (GPIO 12)
+    ledcAttach(ENA, PWM_FREQ, PWM_RES);  // ENA (GPIO 27)
     ledcAttach(ENB, PWM_FREQ, PWM_RES);  // ENB (GPIO 13)
   #else
     ledcSetup(PWM_CH_LEFT, PWM_FREQ, PWM_RES);
@@ -1052,11 +1134,9 @@ void loop() {
     }
   }
 
-  // Safety Watchdog
-  if (millis() - lastPacketTime > SAFETY_TIMEOUT_MS) {
-    if (isDrivingForward) {
-      stopMotors();
-    }
-    
+  // Safety Watchdog: stop all movement (forward, backward, turning) if commands time out
+  if (isMotorsRunning && (millis() - lastPacketTime > SAFETY_TIMEOUT_MS)) {
+    stopMotors();
+    Serial.println("⚠️ [SAFETY] Command timeout! All motors stopped.");
   }
 }
