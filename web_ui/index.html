@@ -2010,8 +2010,8 @@
 
     <div class="topbar-right">
       <div class="estop-module">
-        <button id="btn-estop" onclick="triggerEStop()">
-          <span>⬛</span> E-STOP
+        <button id="btn-estop" onclick="triggerEStop()" title="[F] Emergency Halt / Fast Stop">
+          <span>⬛</span> F-STOP
         </button>
       </div>
     </div>
@@ -2875,6 +2875,10 @@
         clawQuick(110);
         return;
       }
+      if (k === 'f') {
+        triggerEStop();
+        return;
+      }
 
       if (keyMap[k]) {
         playSFX('click');
@@ -3130,7 +3134,7 @@
       playSFX('alert');
       sendCmd('ESTOP');
       updateWheelSchematic('CMD:STOP');
-      logTerminal('⬛ EMERGENCY HALT (E-STOP) ENGAGED', 'danger');
+      logTerminal('⬛ EMERGENCY HALT (F-STOP) ENGAGED', 'danger');
     }
 
     function applyConfig() {
