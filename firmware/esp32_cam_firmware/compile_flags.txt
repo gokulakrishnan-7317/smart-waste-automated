@@ -1,4 +1,11 @@
--x
-c++
--std=c++17
+-xc++
+-std=gnu++17
+-DESP32
+-DARDUINO=10819
+-DARDUINO_ARCH_ESP32
+-DARDUINO_BOARD="AI_THINKER"
 -w
+-IC:/Users/gokul/AppData/Local/Arduino15/packages/esp32/hardware/esp32/3.3.11/cores/esp32
+-IC:/Users/gokul/AppData/Local/Arduino15/packages/esp32/hardware/esp32/3.3.11/variants/esp32
+-IC:/Users/gokul/AppData/Local/Arduino15/packages/esp32/hardware/esp32/3.3.11/libraries/WiFi/src
+-IC:/Users/gokul/AppData/Local/Arduino15/packages/esp32/hardware/esp32/3.3.11/libraries/WebServer/src

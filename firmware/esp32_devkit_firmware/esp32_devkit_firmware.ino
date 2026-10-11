@@ -79,6 +79,26 @@ Adafruit_PWMServoDriver pca = Adafruit_PWMServoDriver(0x40);
 #define CH_WRIST_ROLL 4  // MG90S  180° positional (wrist roll)
 #define CH_GRIPPER 5     // MG90S  180° positional (claw)
 
+// Base 360° continuous rotation settings and bin calibration
+#define BASE_SPEED 60 // % speed (0-100) used for base rotations
+int binRight180Ms = 1100; // ms to rotate 180° CW (Turn Right) to Degradable Bin
+int binLeft180Ms  = 1100; // ms to rotate 180° CCW (Turn Left) to Non-Degradable Bin
+
+// Forward declarations for clean C++ compilation
+void stopMotors();
+void moveForward();
+void moveBackward();
+void steerLeft();
+void steerRight();
+void armHome();
+void baseStop();
+void baseSetSpeed(int speed);
+void setServoAngle(uint8_t channel, int angle);
+void smoothMoveServo(uint8_t channel, int targetAngle, int stepDelay = 10);
+void rotateBaseToAngle(int targetAngle);
+void executeSmartTargetPickSequence(String wasteClass, String offsetDir, int offsetMs);
+void executePickSequence(String wasteClass);
+
 int currentAngles[6] = {-1, -1, -1, -1, -1, -1};
 bool pcaReady = false;
 
@@ -283,9 +303,24 @@ inline int clampTTPWM(int spd) {
   return constrain(spd, TT_MIN_PWM, TT_MAX_PWM);
 }
 
-// ---------- PWM & Voltage helpers ----------
+// ---------- PWM & Voltage helpers (Dual-compatible ESP32 Core 2.x & 3.x) ----------
+#if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3)
 inline void setLeftPWM(int spd)   { ledcWrite(ENA, clampTTPWM(spd)); }
 inline void setRightPWM(int spd)  { ledcWrite(ENB, clampTTPWM(spd)); }
+inline void disableDrive() {
+  ledcWrite(ENA, 0);
+  ledcWrite(ENB, 0);
+}
+#else
+#define PWM_CH_LEFT  0
+#define PWM_CH_RIGHT 1
+inline void setLeftPWM(int spd)   { ledcWrite(PWM_CH_LEFT, clampTTPWM(spd)); }
+inline void setRightPWM(int spd)  { ledcWrite(PWM_CH_RIGHT, clampTTPWM(spd)); }
+inline void disableDrive() {
+  ledcWrite(PWM_CH_LEFT, 0);
+  ledcWrite(PWM_CH_RIGHT, 0);
+}
+#endif
 inline void setMotorVoltage(float leftV, float rightV) {
   setLeftPWM(voltageToPWM(leftV));
   setRightPWM(voltageToPWM(rightV));
@@ -293,10 +328,6 @@ inline void setMotorVoltage(float leftV, float rightV) {
 inline void enableDrive() {
   setLeftPWM(motorSpeed);
   setRightPWM(motorSpeed);
-}
-inline void disableDrive() {
-  ledcWrite(ENA, 0);
-  ledcWrite(ENB, 0);
 }
 
 // Safety Watchdog: Stops motors if no command received within 2500ms
@@ -541,9 +572,7 @@ void backCurveRight() {
 //   - BIN 1 (RIGHT · 180° CW)  : DEGRADABLE WASTE (Banana Peel, Food/Organic)
 //   - BIN 2 (LEFT  · 180° CCW) : NON-BIODEGRADABLE WASTE (Plastics, Metals, Cans, Batteries)
 // ==============================================================================
-#define BASE_SPEED 60 // % speed (0-100) used for base rotations
-int binRight180Ms = 1100; // ms to rotate 180° CW (Turn Right) to Degradable Bin
-int binLeft180Ms  = 1100; // ms to rotate 180° CCW (Turn Left) to Non-Degradable Bin
+// (BASE_SPEED and bin calibration ms defined at top of file)
 
 // Helper to determine if detected class is Degradable or Non-Degradable
 inline bool isDegradableWaste(String wasteClass) {
@@ -760,8 +789,15 @@ void setup() {
   // 2. Setup PWM Enable channels via LEDC (ESP32 hardware PWM)
   //    Frequency: 5 kHz, 8-bit resolution (0-255)
   //    ENA -> Left motors voltage/speed, ENB -> Right motors voltage/speed
-  ledcAttach(ENA, PWM_FREQ, PWM_RES);  // ENA (GPIO 12)
-  ledcAttach(ENB, PWM_FREQ, PWM_RES);  // ENB (GPIO 13)
+  #if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3)
+    ledcAttach(ENA, PWM_FREQ, PWM_RES);  // ENA (GPIO 12)
+    ledcAttach(ENB, PWM_FREQ, PWM_RES);  // ENB (GPIO 13)
+  #else
+    ledcSetup(PWM_CH_LEFT, PWM_FREQ, PWM_RES);
+    ledcAttachPin(ENA, PWM_CH_LEFT);
+    ledcSetup(PWM_CH_RIGHT, PWM_FREQ, PWM_RES);
+    ledcAttachPin(ENB, PWM_CH_RIGHT);
+  #endif
 
   stopMotors();
   Serial.printf("Chassis Motors Initialized. PWM speed=%d/255 (~%.0f%%)\n",
