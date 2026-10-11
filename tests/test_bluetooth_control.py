@@ -35,23 +35,37 @@ def scan_ports():
     return found
 
 def connect(port_name=None):
-    if port_name is None:
+    if port_name:
+        candidate_ports = [port_name]
+    else:
         ports = scan_ports()
         if not ports:
             return None
-        # Prefer Bluetooth ports
+        # Sort Bluetooth ports with highest numbers first (newest paired device)
         bt_ports = [p.device for p in lp.comports() if "BTHENUM" in p.hwid.upper() or "BLUETOOTH" in p.description.upper()]
-        port_name = bt_ports[0] if bt_ports else ports[0]
+        def port_num(d):
+            try: return int(d.upper().replace("COM", ""))
+            except: return 0
+        bt_ports.sort(key=port_num, reverse=True)
+        candidate_ports = bt_ports if bt_ports else ports
 
-    print(f"\n🔌 Attempting to open Bluetooth Serial on {port_name} (115200 baud)...")
-    try:
-        ser = serial.Serial(port_name, 115200, timeout=1.5)
-        time.sleep(0.5)
-        print(f"✅ Successfully connected to {port_name}!")
-        return ser
-    except Exception as e:
-        print(f"❌ Failed to open {port_name}: {e}")
-        return None
+    for p in candidate_ports:
+        print(f"\n🔌 Attempting to open Bluetooth Serial on {p} (115200 baud)...")
+        try:
+            ser = serial.Serial(p, 115200, timeout=1.5)
+            time.sleep(0.4)
+            ser.write(b"CMD:PING\n")
+            ser.flush()
+            time.sleep(0.2)
+            reply = ser.readline().decode('utf-8', errors='ignore').strip()
+            print(f"✅ Successfully connected to {p}! (Ping response: '{reply}')")
+            return ser
+        except Exception as e:
+            print(f"  Port {p} not responding ({e}), trying next...")
+            continue
+
+    print("\n❌ Could not connect to any Bluetooth port.")
+    return None
 
 def main():
     print("=" * 65)

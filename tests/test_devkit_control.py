@@ -45,28 +45,38 @@ is_serial   = False
 
 # Check for Bluetooth / Serial override or auto-detection
 target_arg = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("-") else None
-if not target_arg or "--bt" in sys.argv:
-    try:
-        import serial.tools.list_ports as lp
-        for p in lp.comports():
-            info = f"{p.device} {p.description}".upper()
-            if "BTHENUM" in info or "BLUETOOTH" in info or "SMART_WASTE" in info or "STANDARD" in info:
-                target_arg = p.device
-                break
-    except Exception:
-        pass
+candidate_coms = []
 
 if target_arg and target_arg.upper().startswith("COM"):
+    candidate_coms = [target_arg]
+elif not target_arg or "--bt" in sys.argv:
     try:
-        import serial
-        ser_conn = serial.Serial(target_arg, 115200, timeout=1.5)
-        is_serial = True
-        print(f"  📶 [Bluetooth Serial Connected] DevKit active on {target_arg} (Zero IP needed!)")
-    except Exception as e:
-        print(f"  ❌ [Serial Connect Error on {target_arg}] {e}")
-        ser_conn = None
+        import serial.tools.list_ports as lp
+        bt_ports = [p.device for p in lp.comports() if "BTHENUM" in p.hwid.upper() or "BLUETOOTH" in p.description.upper()]
+        def port_num(d):
+            try: return int(d.upper().replace("COM", ""))
+            except: return 0
+        bt_ports.sort(key=port_num, reverse=True)
+        candidate_coms = bt_ports
+    except Exception:
+        pass
 elif target_arg:
     DEVKIT_IP = target_arg
+
+# Try connecting to candidate serial ports
+if candidate_coms:
+    import serial
+    for p in candidate_coms:
+        try:
+            ser_conn = serial.Serial(p, 115200, timeout=1.5)
+            is_serial = True
+            print(f"  📶 [Bluetooth Serial Connected] DevKit active on {p} (Zero IP needed!)")
+            break
+        except Exception:
+            ser_conn = None
+            continue
+    if not ser_conn:
+        print(f"  ⚠️ Could not open candidate Bluetooth ports {candidate_coms}. Falling back to UDP {DEVKIT_IP}:{DEVKIT_PORT}")
 
 sock   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 target = (DEVKIT_IP, DEVKIT_PORT)

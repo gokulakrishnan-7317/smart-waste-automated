@@ -8,5 +8,9 @@ echo   ESP32 DevKit Hardware Diagnostics (Motors & 6-DOF Robotic Arm)
 echo   Connection: Bluetooth Serial ("SMART_WASTE_ROBOT") / UDP 192.168.137.204
 echo =========================================================================
 echo.
-python tests/test_devkit_control.py
+if "%~1"=="" (
+    python tests/test_devkit_control.py COM14
+) else (
+    python tests/test_devkit_control.py %*
+)
 pause
