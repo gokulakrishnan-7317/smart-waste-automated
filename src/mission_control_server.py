@@ -76,7 +76,10 @@ class RobotSerial:
 
     @property
     def is_connected(self):
-        return bool(self.ser and self.ser.is_open)
+        if not self.ser or not self.ser.is_open:
+            return False
+        # Heartbeat watchdog: if no telemetry/pong received for > 2.5s, device is offline!
+        return self.last_rx > 0 and (time.time() - self.last_rx) < 2.5
 
     def send(self, cmd, force=False):
         now=time.time()
@@ -321,9 +324,18 @@ def telemetry_worker():
             robot.poll_telemetry()
             conn = bool(robot.is_connected)
             shared_state["devkit_online"] = conn
-            if conn and (now - last_query >= 0.8):
-                robot.send("CMD:TELEMETRY")
-                last_query = now
+            ser_open = getattr(robot, "ser", None) is not None and robot.ser.is_open
+            if ser_open:
+                if now - last_query >= 0.8:
+                    robot.send("CMD:TELEMETRY")
+                    last_query = now
+                if not conn and (now - robot.last_rx > 3.5):
+                    print("  [DevKit Disconnected] Heartbeat timeout. Closing port for clean reconnect.")
+                    robot.close()
+            elif isinstance(robot, RobotUDP):
+                if now - last_query >= 0.8:
+                    robot.send("CMD:TELEMETRY")
+                    last_query = now
         else:
             shared_state["devkit_online"] = False
         time.sleep(0.04)
