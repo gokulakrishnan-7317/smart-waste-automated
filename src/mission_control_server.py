@@ -113,18 +113,29 @@ class RobotSerial:
 
 def find_bluetooth_port(device_hint="SMART_WASTE_ROBOT"):
     try:
+        import serial
         import serial.tools.list_ports as lp
         ports = list(lp.comports())
-        for p in ports:
-            info = f"{p.device} {p.description} {p.hwid}".upper()
-            if "BTHENUM" in info or "BLUETOOTH" in info or device_hint.upper() in info:
-                return p.device
+        bt_ports = [p.device for p in ports if "BTHENUM" in p.hwid.upper() or "BLUETOOTH" in p.description.upper()]
+        def port_num(d):
+            try: return int(d.upper().replace("COM", ""))
+            except: return 0
+        bt_ports.sort(key=port_num, reverse=True)
+        for p in bt_ports:
+            try:
+                s = serial.Serial(p, 115200, timeout=0.8)
+                s.close()
+                return p
+            except Exception:
+                continue
+        # Fallback to USB serial (CH340 or CP210)
         for p in ports:
             info = f"{p.device} {p.description}".upper()
-            if "STANDARD" in info or "CP210" in info or "CH340" in info:
+            if "CH340" in info or "CP210" in info or "USB-SERIAL" in info:
                 return p.device
-    except Exception: pass
-    return None
+    except Exception:
+        pass
+    return "COM14"
 
 class RobotUDP:
     def __init__(self, ip, port):
