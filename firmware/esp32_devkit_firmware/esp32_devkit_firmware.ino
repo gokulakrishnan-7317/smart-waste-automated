@@ -136,7 +136,7 @@ void setServoAngle(uint8_t channel, int angle) {
   currentAngles[channel] = angle;
 }
 
-void smoothMoveServo(uint8_t channel, int targetAngle, int stepDelay = 10) {
+void smoothMoveServo(uint8_t channel, int targetAngle, int stepDelay) {
   if (channel >= 6 || !pcaReady)
     return;
   targetAngle = constrain(targetAngle, 0, 180);
