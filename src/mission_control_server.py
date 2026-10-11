@@ -51,115 +51,138 @@ latest_frame = [None]
 
 class RobotSerial:
     def __init__(self, port, baudrate=115200):
-        self.port=port; self.baudrate=baudrate; self.ser=None
-        self.last_cmd=""; self.last_time=0.0
-        self.last_rx=0.0
+        self.port = port
+        self.baudrate = baudrate
+        self.ser = None
+        self.last_cmd = ""
+        self.last_time = 0.0
+        self.last_rx = 0.0
+        self.lock = threading.RLock()
         self.connect()
 
     def connect(self):
-        try:
-            import serial
-            if self.ser and self.ser.is_open:
-                try: self.ser.close()
-                except: pass
-            print(f"  [Connecting BT Serial] Opening {self.port} at {self.baudrate} baud...")
-            self.ser=serial.Serial(self.port, self.baudrate, timeout=0.1)
-            self.last_rx = time.time()
-            print(f"  [BT Serial Connected] DevKit active on {self.port} (Zero IP needed!)")
+        with self.lock:
             try:
-                self.ser.write(b"CMD:PING\n")
-                self.ser.flush()
-            except Exception: pass
-        except Exception as e:
-            print(f"  [BT Connect Warning] Could not open {self.port}: {e}")
-            self.ser = None
+                import serial
+                if self.ser and self.ser.is_open:
+                    try: self.ser.close()
+                    except: pass
+                print(f"  [Connecting BT Serial] Opening {self.port} at {self.baudrate} baud...")
+                self.ser = serial.Serial(self.port, self.baudrate, timeout=0.1, write_timeout=0.4)
+                self.last_rx = time.time()
+                print(f"  [BT Serial Connected] DevKit active on {self.port} (Zero IP needed!)")
+                try:
+                    self.ser.write(b"CMD:PING\n")
+                    self.ser.write(b"CMD:TELEMETRY\n")
+                    self.ser.flush()
+                except Exception:
+                    pass
+            except Exception as e:
+                print(f"  [BT Connect Warning] Could not open {self.port}: {e}")
+                self.ser = None
 
     @property
     def is_connected(self):
-        if not self.ser or not self.ser.is_open:
-            return False
-        # Heartbeat watchdog: allow up to 8.0s for Bluetooth RFCOMM buffering
-        return self.last_rx > 0 and (time.time() - self.last_rx) < 8.0
+        with self.lock:
+            if not self.ser or not self.ser.is_open:
+                return False
+            # Heartbeat watchdog: allow up to 12.0s for Bluetooth RFCOMM buffering
+            return self.last_rx > 0 and (time.time() - self.last_rx) < 12.0
 
     def send(self, cmd, force=False):
-        now=time.time()
-        if not force and cmd==self.last_cmd and (now-self.last_time)<0.09: return
-        if self.ser and self.ser.is_open:
-            try:
-                self.ser.write((cmd.strip()+"\n").encode("utf-8"))
-                self.ser.flush()
-                self.last_cmd=cmd; self.last_time=now
-                print(f"  BT -> {self.port}  {cmd}")
-            except Exception as e:
-                print(f"  BT send err: {e}")
-                try: self.ser.close()
-                except: pass
-                self.ser = None
+        now = time.time()
+        if not force and cmd == self.last_cmd and (now - self.last_time) < 0.09:
+            return
+        with self.lock:
+            if self.ser and self.ser.is_open:
+                try:
+                    self.ser.write((cmd.strip() + "\n").encode("utf-8"))
+                    self.ser.flush()
+                    self.last_cmd = cmd
+                    self.last_time = now
+                    print(f"  BT -> {self.port}  {cmd}")
+                except Exception as e:
+                    print(f"  BT send err: {e}")
 
     def poll_telemetry(self):
-        if not self.ser or not self.ser.is_open: return False
-        received = False
-        try:
-            while self.ser.in_waiting > 0:
-                line = self.ser.readline().decode("utf-8", errors="ignore").strip()
-                if line:
-                    self.last_rx = time.time()
-                if line.startswith("TELEM:"):
-                    received = True
-                    for part in line[6:].split(","):
-                        if "=" in part:
-                            k, v = part.split("=", 1); k = k.lower().strip()
-                            try:
-                                t = shared_state["telemetry"]
-                                if k=="dist": t["dist"]=float(v)
-                                elif k=="ir_l": t["ir_l"]=int(v)
-                                elif k=="ir_r": t["ir_r"]=int(v)
-                                elif k=="obst": t["obst"]=int(v)
-                                elif k=="lat": t["lat"]=v
-                                elif k=="lon": t["lon"]=v
-                                elif k=="fix": t["fix"]=int(v)
-                                elif k=="sats": t["sats"]=int(v)
-                            except ValueError: pass
-        except Exception as e:
-            print(f"  BT poll err: {e}")
-            try: self.ser.close()
-            except: pass
-            self.ser = None
-        return received
+        with self.lock:
+            if not self.ser or not self.ser.is_open:
+                return False
+            received = False
+            try:
+                while self.ser.in_waiting > 0:
+                    line = self.ser.readline().decode("utf-8", errors="ignore").strip()
+                    if line:
+                        self.last_rx = time.time()
+                    if line.startswith("TELEM:"):
+                        received = True
+                        for part in line[6:].split(","):
+                            if "=" in part:
+                                k, v = part.split("=", 1)
+                                k = k.lower().strip()
+                                try:
+                                    t = shared_state["telemetry"]
+                                    if k == "dist": t["dist"] = float(v)
+                                    elif k == "ir_l": t["ir_l"] = int(v)
+                                    elif k == "ir_r": t["ir_r"] = int(v)
+                                    elif k == "obst": t["obst"] = int(v)
+                                    elif k == "lat": t["lat"] = v
+                                    elif k == "lon": t["lon"] = v
+                                    elif k == "fix": t["fix"] = int(v)
+                                    elif k == "sats": t["sats"] = int(v)
+                                except ValueError:
+                                    pass
+            except Exception as e:
+                print(f"  BT poll err: {e}")
+            return received
 
     def close(self):
-        try:
-            if self.ser and self.ser.is_open: self.ser.close()
-        except Exception: pass
-        self.ser = None
+        with self.lock:
+            try:
+                if self.ser and self.ser.is_open:
+                    self.ser.close()
+            except Exception:
+                pass
+            self.ser = None
 
 def find_bluetooth_port(device_hint="SMART_WASTE_ROBOT"):
+    global robot
+    # If already connected and alive, stick to current port!
+    if robot and getattr(robot, "is_connected", False) and getattr(robot, "port", None):
+        return robot.port
+
     try:
         import serial
         import serial.tools.list_ports as lp
         ports = list(lp.comports())
 
-        # 1. First priority: SMART_WASTE_ROBOT Bluetooth port (MAC: B0CBD80F8816)
+        # 1. First priority: SMART_WASTE_ROBOT Bluetooth Outgoing port (MAC: B0CBD80F8816)
         for p in ports:
             desc = f"{p.device} {p.description} {p.hwid}".upper()
             if "B0CBD80F8816" in desc:
-                print(f"  [Auto-Detect] Found SMART_WASTE_ROBOT on {p.device}")
                 return p.device
 
-        # 2. Check for direct USB cable connection (CP210x, CH340, FTDI, etc.)
+        # 2. Prefer COM15 over COM14 if present (COM15 is the outgoing RFCOMM link)
+        all_devs = [p.device.upper() for p in ports]
+        if "COM15" in all_devs:
+            return "COM15"
+        if "COM14" in all_devs:
+            return "COM14"
+
+        # 3. Check for direct USB cable connection (CP210x, CH340, FTDI, etc.)
         for p in ports:
             desc = f"{p.device} {p.description} {p.hwid}".upper()
             if any(chip in desc for chip in ["CP210", "CH340", "USB-SERIAL", "FTDI", "PROLIFIC", "SILICON LABS"]):
                 print(f"  [Auto-Detect] Found USB Serial DevKit on {p.device}: {p.description}")
                 return p.device
 
-        # 3. Check for COM14 or device hint
+        # 4. Check for device hint
         for p in ports:
             desc = f"{p.device} {p.description} {p.hwid}".upper()
-            if "COM14" == p.device.upper() or device_hint.upper() in desc:
+            if device_hint.upper() in desc:
                 return p.device
 
-        # 3. Filter out known audio headsets/earbuds
+        # 5. Filter out known audio headsets/earbuds
         exclude_macs = ["12254FB5D5BA", "FEE5E937469C", "B56B2C66887E"]
         valid_bt = []
         for p in ports:
@@ -366,20 +389,20 @@ def reconnect_worker():
             if not robot or not robot.is_connected:
                 bt_port = find_bluetooth_port()
                 if bt_port:
-                    if not robot or not isinstance(robot, RobotSerial) or getattr(robot, "port", None) != bt_port:
-                        if robot:
-                            try: robot.close()
-                            except: pass
+                    if not robot or not isinstance(robot, RobotSerial):
                         robot = RobotSerial(bt_port)
-                    else:
+                    elif getattr(robot, "port", None) != bt_port:
+                        robot.close()
+                        robot = RobotSerial(bt_port)
+                    elif not robot.ser or not robot.ser.is_open:
                         robot.connect()
                     shared_state["devkit_online"] = bool(robot and robot.is_connected)
                     shared_state["devkit_ip"] = bt_port
                 else:
                     shared_state["devkit_online"] = False
-        except Exception:
+        except Exception as e:
             pass
-        time.sleep(5.0)
+        time.sleep(3.0)
 
 def hotspot_watchdog():
     script_path = str(ROOT_DIR / "scripts" / "start_hotspot.ps1")
