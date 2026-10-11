@@ -30,6 +30,7 @@
 #include "soc/soc.h"             // Power / brownout control
 #include "soc/rtc_cntl_reg.h"    // Power / brownout control
 #include "esp_http_server.h"
+#include <lwip/sockets.h>
 
 // ------------------------------------------------------------------------------
 // 1. PERMANENT FIXED STATIC IP CONFIGURATION
