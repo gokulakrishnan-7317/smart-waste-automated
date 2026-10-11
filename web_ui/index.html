@@ -1,0 +1,3227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMART WASTE MANAGEMENT SYSTEM USING AI VISION AND ROBOTIC MANIPULATION</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      /* ── PURE OBSIDIAN BLACK & LITE GOLD PALETTE ── */
+      --bg-void: #000000;
+      --bg-primary: #000000;
+      --bg-surface: #000000;
+      --bg-card: #000000;
+      --bg-card-hover: #000000;
+      --bg-glass-gold: #000000;
+
+      --gold-100: #ffffff;
+      --gold-200: #ffffff;
+      --gold-300: #cbd5e1;
+      --gold-400: #e2e8f0;
+      --gold-500: #64748b;
+      /* Muted sleek titanium slate */
+      --gold-600: #475569;
+      --gold-700: #334155;
+      --gold-800: #1e293b;
+      --gold-900: #0f172a;
+
+      --gold-grad: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 50%, #94a3b8 100%);
+      --gold-grad-light: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+      --gold-grad-soft: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+      --gold-grad-radial: radial-gradient(circle at center, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
+
+      /* Tactical Blue Theme Across All Border Lines */
+      --border-gold-lite: #1d4ed8;
+      --border-gold: #1d4ed8;
+      --border-gold-dim: #1e3a8a;
+      --border-gold-hi: #3b82f6;
+
+      --border-blue: #1d4ed8;
+      --border-blue-lite: #1d4ed8;
+      --border-blue-dim: #1e3a8a;
+      --border-blue-hi: #3b82f6;
+
+      --amber-core: #f59e0b;
+      --ruby-alert: #ef4444;
+      --ruby-glow: rgba(239, 68, 68, 0.45);
+      --emerald-ok: #10b981;
+
+      --text-pure: #ffffff;
+      --text-gold-light: #ffffff;
+      --text-gold: #ffffff;
+      --text-muted: #94a3b8;
+      --text-dim: #cbd5e1;
+
+      --font-brand: 'Consolas', 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+      --font-tactical: 'Consolas', 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+      --font-ui: 'Consolas', 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+      --font-telemetry: 'Consolas', 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+
+      --shadow-obsidian: 0 8px 32px rgba(0, 0, 0, 0.95);
+      --shadow-gold-aura: 0 0 10px rgba(255, 255, 255, 0.06);
+      --shadow-gold-flare: 0 0 14px rgba(255, 255, 255, 0.15);
+
+      --clip-chamfer: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+      --clip-corner-cut: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: #000000;
+      font-family: 'Consolas', 'Cascadia Code', 'Fira Code', 'Courier New', monospace !important;
+    }
+
+    /* ── SLEEK CUSTOM OBSIDIAN & GOLD AEROSPACE SCROLLBAR ── */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+      background: #000000;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #000000;
+      border-left: 1px solid var(--border-gold-lite);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-gold-lite);
+      border-radius: 4px;
+      border: 1px solid #000000;
+      box-shadow: none;
+      transition: all 0.2s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #cbd5e1;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.12);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      text-shadow: none !important;
+      font-family: 'Consolas', 'Cascadia Code', 'Fira Code', 'Courier New', monospace !important;
+    }
+
+    body {
+      background-color: #000000 !important;
+      color: #ffffff;
+      font-family: 'Consolas', 'Cascadia Code', 'Fira Code', 'Courier New', monospace !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      user-select: none;
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+     HEADER BAR: APEX AEROSPACE COCKPIT (COMPLETE BLACK)
+  ───────────────────────────────────────────────────────────── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      height: 70px;
+      background: #000000 !important;
+      border-bottom: 1.5px solid #1d4ed8 !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.98), 0 2px 10px rgba(29, 78, 216, 0.3) !important;
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-insignia {
+      width: 44px;
+      height: 44px;
+      background: var(--gold-grad);
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.12);
+      position: relative;
+    }
+
+    .brand-insignia-core {
+      width: 36px;
+      height: 36px;
+      background: #000000 !important;
+      border: 1px solid var(--border-gold-lite);
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff !important;
+      font-family: var(--font-tactical);
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .brand-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      font-family: var(--font-tactical);
+      font-size: 15px !important;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      background: none !important;
+      text-shadow: none !important;
+      line-height: 1.35;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-symbol {
+      font-size: 20px !important;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.65));
+      animation: pulse-symbol 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse-symbol {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.5)); }
+      50% { transform: scale(1.08); filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.9)); }
+    }
+
+    .brand-subtitle {
+      font-size: 11px !important;
+      font-weight: 600;
+      color: #94a3b8 !important;
+      font-family: var(--font-telemetry);
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-subtitle span {
+      color: #ffffff !important;
+    }
+
+    .brand-subtitle-badge {
+      background: #000000 !important;
+      color: #ffffff !important;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      border: 1px solid var(--border-gold-lite);
+    }
+
+    .topbar-center {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .telecom-pill {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 16px;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-family: var(--font-telemetry);
+      font-weight: 700;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      background: #000000 !important;
+      border: 1px solid var(--border-gold-lite);
+      color: #ffffff !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .telecom-pill.online {
+      border: 1.5px solid #10b981 !important;
+      background: #000000 !important;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.35) !important;
+      color: #ffffff !important;
+    }
+
+    .telecom-pill.online .telecom-signal {
+      background: #10b981 !important;
+      box-shadow: 0 0 8px #10b981 !important;
+    }
+
+    .telecom-pill.offline {
+      border: 1.5px solid #ef4444 !important;
+      background: #000000 !important;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.35) !important;
+      color: #ef4444 !important;
+    }
+
+    .telecom-pill.offline .telecom-signal {
+      background: #ef4444 !important;
+      box-shadow: 0 0 8px #ef4444 !important;
+      animation: none;
+    }
+
+    .telecom-signal {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .topbar-right {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    /* E-STOP Button with Safety Hatch */
+    .estop-module {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    #btn-estop {
+      padding: 9px 22px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border-gold-lite);
+      background: #000000;
+      color: #ffffff !important;
+      font-family: var(--font-tactical);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 2.5px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #btn-estop span {
+      color: #ffffff !important;
+    }
+
+    #btn-estop:hover {
+      border-color: #ef4444;
+      background: #ef4444;
+      color: #ffffff !important;
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.7);
+      transform: translateY(-1px);
+    }
+
+    #btn-estop:active {
+      transform: scale(0.96);
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+     MAIN GRID COCKPIT LAYOUT & STAGGERED ENTRANCE ANIMATIONS
+  ───────────────────────────────────────────────────────────── */
+    .cockpit-grid {
+      position: relative;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: 320px 1fr 340px;
+      gap: 18px;
+      padding: 20px 28px 28px;
+      max-width: 1780px;
+      margin: 0 auto;
+    }
+
+    .topbar {
+      animation: cockpit-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .col-drive {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      animation: cockpit-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+    }
+
+    .col-hud {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      animation: cockpit-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.16s both;
+    }
+
+    .col-arm-radar {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      animation: cockpit-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both;
+    }
+
+    .row-full {
+      grid-column: 1 / 4;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 18px;
+      animation: cockpit-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.32s both;
+    }
+
+    @keyframes cockpit-enter {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+     SCROLL ANIMATION & DYNAMIC LASER PROGRESS SYSTEM
+  ───────────────────────────────────────────────────────────── */
+    .scroll-progress-container {
+      position: fixed;
+      top: 70px;
+      left: 0;
+      right: 0;
+      height: 2.5px;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 99;
+      pointer-events: none;
+    }
+
+    .scroll-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #64748b 0%, #cbd5e1 100%);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.12);
+      position: relative;
+      transition: width 0.08s ease-out;
+    }
+
+    .scroll-laser-spark {
+      position: absolute;
+      right: 0;
+      top: -3px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #cbd5e1;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+      transform: translateX(50%);
+      animation: spark-pulse 0.8s infinite alternate;
+    }
+
+    @keyframes spark-pulse {
+      0% {
+        transform: translateX(50%) scale(0.85);
+        opacity: 0.85;
+      }
+
+      100% {
+        transform: translateX(50%) scale(1.35);
+        opacity: 1;
+      }
+    }
+
+    /* Reactive Scrolling Body State */
+    body.is-scrolling .topbar {
+      border-bottom-color: #3b82f6;
+      box-shadow: 0 14px 45px rgba(0, 0, 0, 0.98), 0 2px 24px rgba(29, 78, 216, 0.25);
+    }
+
+    body.is-scrolling .tactical-card {
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.98), 0 0 18px rgba(29, 78, 216, 0.25);
+    }
+
+    /* Scroll-Triggered Reveal & Flare */
+    .scroll-reveal {
+      opacity: 0.85;
+      transform: translateY(22px) scale(0.985);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 0.6s ease,
+        box-shadow 0.6s ease;
+      will-change: opacity, transform;
+    }
+
+    .scroll-reveal.in-view {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .scroll-reveal.in-view.scroll-flare {
+      animation: scroll-border-flare 1.2s ease-out forwards;
+    }
+
+    @keyframes scroll-border-flare {
+      0% {
+        border-color: #3b82f6;
+        box-shadow: 0 0 16px rgba(37, 99, 235, 0.3);
+      }
+
+      100% {
+        border-color: var(--border-gold-lite);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.95);
+      }
+    }
+
+    /* Floating Scroll HUD Indicator */
+    .scroll-hud-indicator {
+      position: fixed;
+      bottom: 58px;
+      right: 28px;
+      z-index: 95;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      transform: translateY(16px);
+      pointer-events: none;
+      transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .scroll-hud-indicator.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .scroll-hud-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border-radius: 6px;
+      background: #000000 !important;
+      border: 1px solid var(--border-gold-lite);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.95);
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+
+    .scroll-hud-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: none;
+    }
+
+    .scroll-hud-deck {
+      font-family: var(--font-telemetry);
+      font-size: 9px;
+      font-weight: 800;
+      color: #ffffff !important;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-shadow: none !important;
+    }
+
+    .scroll-hud-btn {
+      padding: 7px 14px;
+      border-radius: 6px;
+      background: #000000 !important;
+      border: 1px solid var(--border-gold-lite);
+      color: #ffffff !important;
+      font-family: var(--font-tactical);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.95);
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      text-shadow: none !important;
+    }
+
+    .scroll-hud-btn span {
+      color: #ffffff !important;
+      text-shadow: none !important;
+    }
+
+    .scroll-hud-btn:hover {
+      border-color: #3b82f6 !important;
+      background: #000000 !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 16px rgba(37, 99, 235, 0.45) !important;
+      transform: translateY(-2px);
+    }
+
+    .scroll-hud-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* ── TACTICAL CHAMFERED CARD MODULE (COMPLETE BLACK WITH BLUE OUTLINE) ── */
+    @keyframes tactical-breathe {
+      0%, 100% {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.95), 0 0 10px rgba(29, 78, 216, 0.25) !important;
+      }
+      50% {
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.95), 0 0 20px rgba(37, 99, 235, 0.42) !important;
+      }
+    }
+
+    .tactical-card {
+      background: #000000 !important;
+      border: 1.5px solid #1d4ed8 !important;
+      border-radius: 10px;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.95), 0 0 12px rgba(29, 78, 216, 0.25) !important;
+      position: relative;
+      overflow: hidden;
+      animation: tactical-breathe 5s ease-in-out infinite;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .tactical-card:hover {
+      border-color: #3b82f6 !important;
+      box-shadow: 0 0 28px rgba(37, 99, 235, 0.55), 0 0 6px #1d4ed8 !important;
+      transform: translateY(-2px);
+    }
+
+    /* Tech Corner Brackets Animation */
+    @keyframes bracket-pulse {
+      0%, 100% {
+        opacity: 0.85;
+        filter: drop-shadow(0 0 3px #1d4ed8);
+      }
+      50% {
+        opacity: 1;
+        filter: drop-shadow(0 0 8px #3b82f6);
+      }
+    }
+
+    .tactical-card::before,
+    .tactical-card::after {
+      content: '';
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+      z-index: 5;
+      animation: bracket-pulse 3.5s ease-in-out infinite;
+      transition: all 0.3s ease;
+    }
+
+    .tactical-card::before {
+      top: 0;
+      left: 0;
+      border-top: 2.5px solid #3b82f6 !important;
+      border-left: 2.5px solid #3b82f6 !important;
+    }
+
+    .tactical-card::after {
+      bottom: 0;
+      right: 0;
+      border-bottom: 2.5px solid #3b82f6 !important;
+      border-right: 2.5px solid #3b82f6 !important;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 18px;
+      border-bottom: 1.5px solid #1d4ed8 !important;
+      background: #000000 !important;
+    }
+
+    .card-title {
+      font-size: 13px !important;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: #ffffff !important;
+      font-family: var(--font-tactical);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-shadow: none !important;
+    }
+
+    .card-title-icon {
+      font-size: 16px !important;
+      color: #ffffff !important;
+      filter: none !important;
+      transition: transform 0.25s ease;
+    }
+
+    .tactical-card:hover .card-title-icon {
+      transform: scale(1.2);
+    }
+
+    .card-badge {
+      font-size: 10px !important;
+      font-family: var(--font-telemetry);
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      background: rgba(30, 58, 138, 0.25) !important;
+      color: #93c5fd !important;
+      border: 1px solid #1d4ed8 !important;
+      transition: all 0.25s ease;
+    }
+
+    .tactical-card:hover .card-badge {
+      border-color: #3b82f6 !important;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+    }
+
+    /* Interactive Controls - No Shimmer Haze */
+    .dpad-btn,
+    .arm-tile,
+    .cfg-btn,
+    .mode-tab,
+    .base-jog-btn,
+    .throttle-pill,
+    #btn-estop {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dpad-btn::before,
+    .arm-tile::before,
+    .cfg-btn::before,
+    .mode-tab::before,
+    .base-jog-btn::before {
+      display: none !important;
+    }
+
+    /* ── TACTICAL DARK BLUE BUTTON OUTLINE THEME WITH SMOOTH BOUNCE ── */
+    button,
+    .dpad-btn,
+    .arm-tile,
+    .cfg-btn,
+    .mode-tab,
+    .throttle-pill,
+    .telecom-pill,
+    #btn-estop {
+      border: 1.5px solid #1d4ed8 !important; /* Bold Tactical Dark Blue Outline */
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    button:hover,
+    .dpad-btn:hover,
+    .arm-tile:hover,
+    .cfg-btn:hover,
+    .mode-tab:hover,
+    .throttle-pill:hover,
+    .telecom-pill:hover {
+      border-color: #3b82f6 !important; /* Luminous Cobalt Blue on Hover */
+      box-shadow: 0 0 18px rgba(37, 99, 235, 0.6), 0 0 4px #1d4ed8 !important;
+      transform: translateY(-2.5px) scale(1.02);
+    }
+
+    button:active,
+    .dpad-btn:active,
+    .dpad-btn.pressed,
+    .arm-tile:active,
+    .cfg-btn:active {
+      border-color: #60a5fa !important;
+      box-shadow: 0 0 20px rgba(37, 99, 235, 0.8) !important;
+      transform: scale(0.95);
+      transition: all 0.08s ease;
+    }
+
+    .mode-tab.active,
+    .throttle-pill.active {
+      border-color: #60a5fa !important;
+      box-shadow: 0 0 18px rgba(37, 99, 235, 0.7) !important;
+    }
+
+    /* Mode Selector - Segmented Fighter Toggle */
+    .mode-switch-wrap {
+      padding: 16px;
+      background: #000000 !important;
+    }
+
+    .mode-switch-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #000000 !important;
+      padding: 5px;
+      border-radius: 8px;
+      border: 1.5px solid #1d4ed8 !important;
+      gap: 6px;
+    }
+
+    .mode-tab {
+      padding: 12px 10px;
+      border-radius: 6px;
+      font-family: var(--font-tactical);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      cursor: pointer;
+      background: #000000 !important;
+      color: #ffffff !important;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      text-shadow: none !important;
+    }
+
+    .mode-tab span {
+      color: #ffffff !important;
+      text-shadow: none !important;
+    }
+
+    .mode-tab:hover {
+      border-color: #3b82f6 !important;
+      color: #ffffff !important;
+      background: #000000 !important;
+      box-shadow: 0 0 14px rgba(37, 99, 235, 0.45) !important;
+      transform: translateY(-1px);
+    }
+
+    .mode-tab.active {
+      background: #000000 !important;
+      color: #ffffff !important;
+      border: 1.5px solid #3b82f6 !important;
+      box-shadow: 0 0 16px rgba(37, 99, 235, 0.5) !important;
+      font-weight: 900;
+    }
+
+    .mode-tab-sub {
+      font-size: 7.5px;
+      font-family: var(--font-telemetry);
+      opacity: 0.9;
+      letter-spacing: 1px;
+      color: #ffffff !important;
+      text-shadow: none !important;
+    }
+
+    /* 4WD Interactive Wheel Vector Schematic */
+    .chassis-visualizer {
+      padding: 0 16px 16px;
+      background: #000000 !important;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .chassis-schematic-wrap {
+      width: 230px;
+      height: 116px;
+      position: relative;
+      border: 1px dashed var(--border-gold-lite);
+      border-radius: 8px;
+      background: #000000 !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .wheel-node {
+      position: absolute;
+      width: 48px;
+      height: 24px;
+      border-radius: 5px;
+      background: #000000 !important;
+      border: 1.5px solid #1d4ed8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-telemetry);
+      font-size: 11px !important;
+      font-weight: 900;
+      color: #ffffff !important;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+      letter-spacing: 1px;
+      user-select: none;
+      text-shadow: none !important;
+    }
+
+    .wheel-node.fl {
+      top: 10px;
+      left: 12px;
+    }
+
+    .wheel-node.fr {
+      top: 10px;
+      right: 12px;
+    }
+
+    .wheel-node.rl {
+      bottom: 10px;
+      left: 12px;
+    }
+
+    .wheel-node.rr {
+      bottom: 10px;
+      right: 12px;
+    }
+
+    .chassis-body-box {
+      width: 90px;
+      height: 80px;
+      border-radius: 6px;
+      background: #000000 !important;
+      border: 1.5px solid var(--border-gold-lite);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff !important;
+      font-family: var(--font-tactical);
+      font-size: 11px !important;
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      text-align: center;
+      padding: 0 4px;
+      text-shadow: none !important;
+    }
+
+    .vector-arrow {
+      font-size: 16px;
+      color: #ffffff !important;
+      filter: none !important;
+      transition: transform 0.2s ease;
+    }
+
+    .wheel-node.spinning {
+      background: #000000 !important;
+      color: #ffffff !important;
+    }
+
+    .wheel-node.spin-fwd {
+      border-color: #3b82f6 !important;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.6) !important;
+      animation: wheel-spin-fwd 0.32s ease-in-out infinite alternate;
+    }
+
+    @keyframes wheel-spin-fwd {
+      0% {
+        transform: translateY(0) scale(1);
+      }
+
+      100% {
+        transform: translateY(-2.5px) scale(1.08);
+      }
+    }
+
+    .wheel-node.spin-rev {
+      border-color: #60a5fa !important;
+      box-shadow: 0 0 12px rgba(96, 165, 250, 0.6) !important;
+      animation: wheel-spin-rev 0.32s ease-in-out infinite alternate;
+    }
+
+    @keyframes wheel-spin-rev {
+      0% {
+        transform: translateY(0) scale(1);
+      }
+
+      100% {
+        transform: translateY(2.5px) scale(1.08);
+      }
+    }
+
+    /* ── TACTICAL D-PAD CONSOLE (COMPLETE BLACK) ── */
+    .dpad-console {
+      padding: 0 16px 16px;
+      background: #000000 !important;
+      display: flex;
+      justify-content: center;
+    }
+
+    .dpad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 84px);
+      grid-template-rows: repeat(3, 76px);
+      gap: 12px;
+      background: #000000 !important;
+    }
+
+    .dpad-btn {
+      background: #000000 !important;
+      border: 1.5px solid var(--border-gold-lite);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.95);
+      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: #ffffff !important;
+      user-select: none;
+      -webkit-user-select: none;
+      text-shadow: none !important;
+    }
+
+    .dpad-btn:hover {
+      border-color: #3b82f6 !important;
+      background: #000000 !important;
+      box-shadow: 0 0 20px rgba(37, 99, 235, 0.6), 0 0 6px #1d4ed8 !important;
+      transform: translateY(-3px) scale(1.05);
+    }
+
+    .dpad-btn:active,
+    .dpad-btn.pressed {
+      border-color: #60a5fa !important;
+      background: #000000 !important;
+      box-shadow: 0 0 16px rgba(37, 99, 235, 0.8) !important;
+      transform: scale(0.94);
+    }
+
+    .dpad-btn-icon {
+      font-size: 26px !important;
+      line-height: 1;
+      color: #ffffff !important;
+      text-shadow: none !important;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .dpad-btn:hover .dpad-btn-icon {
+      transform: scale(1.25);
+      filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.8));
+    }
+
+    .dpad-btn-key {
+      font-family: var(--font-telemetry);
+      font-size: 16px !important;
+      font-weight: 900 !important;
+      letter-spacing: 1.5px;
+      color: #ffffff !important;
+      opacity: 1;
+      text-shadow: none !important;
+    }
+
+    .dpad-center-stop {
+      border-color: var(--border-gold-lite);
+      background: #000000 !important;
+    }
+
+    .dpad-center-stop .dpad-btn-icon {
+      font-size: 24px !important;
+      color: #ffffff !important;
+      text-shadow: none !important;
+    }
+
+    .dpad-center-stop .dpad-btn-key {
+      font-size: 13.5px !important;
+      font-weight: 900 !important;
+      letter-spacing: 1px;
+      color: #ffffff !important;
+      text-shadow: none !important;
+    }
+
+    .dpad-center-stop:hover {
+      border-color: #3b82f6 !important;
+      background: #000000 !important;
+      box-shadow: 0 0 20px rgba(37, 99, 235, 0.6) !important;
+      transform: translateY(-3px) scale(1.05);
+    }
+
+    /* ── THROTTLE PWM SLIDER DECK ── */
+    .throttle-deck {
+      padding: 0 16px 18px;
+      background: #000000 !important;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .throttle-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-tactical);
+      font-size: 11px !important;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #ffffff !important;
+      text-shadow: none !important;
+    }
+
+    .throttle-meta span {
+      color: #ffffff !important;
+      text-shadow: none !important;
+    }
+
+    .throttle-val-readout {
+      font-family: var(--font-telemetry);
+      font-size: 16px !important;
+      font-weight: 800;
+      color: #60a5fa !important;
+      text-shadow: 0 0 8px rgba(96, 165, 250, 0.4) !important;
+    }
+
+    .throttle-bar {
+      width: 100%;
+      height: 10px !important;
+      border-radius: 5px;
+      background: linear-gradient(to right, #2563eb 0%, #3b82f6 68.75%, #1e293b 68.75%, #1e293b 100%);
+      border: 1.5px solid var(--border-gold-lite);
+      outline: none;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      margin: 4px 0;
+    }
+
+    .throttle-bar:hover {
+      border-color: #3b82f6 !important;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+    }
+
+    .throttle-bar::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px !important;
+      height: 22px !important;
+      border-radius: 50%;
+      background: #ffffff !important;
+      border: 2.5px solid #2563eb !important;
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.95), 0 2px 6px rgba(0, 0, 0, 0.9) !important;
+      cursor: pointer;
+      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .throttle-bar::-webkit-slider-thumb:hover {
+      transform: scale(1.22);
+      border-color: #60a5fa !important;
+      box-shadow: 0 0 18px rgba(59, 130, 246, 1) !important;
+    }
+
+    .throttle-bar::-moz-range-thumb {
+      width: 22px !important;
+      height: 22px !important;
+      border-radius: 50%;
+      background: #ffffff !important;
+      border: 2.5px solid #2563eb !important;
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.95) !important;
+      cursor: pointer;
+    }
+
+    .throttle-pills {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .throttle-pill {
+      background: #000000 !important;
+      border: 1.5px solid var(--border-gold-lite);
+      border-radius: 6px;
+      padding: 8px 3px !important;
+      font-family: var(--font-telemetry);
+      color: #ffffff !important;
+      cursor: pointer;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+      user-select: none;
+    }
+
+    .throttle-pill .pill-val {
+      font-size: 13px !important;
+      font-weight: 900;
+      color: #ffffff !important;
+      letter-spacing: 0.8px;
+      line-height: 1;
+    }
+
+    .throttle-pill .pill-lbl {
+      font-size: 8.5px !important;
+      font-weight: 800;
+      color: #93c5fd !important;
+      letter-spacing: 0.5px;
+      line-height: 1;
+    }
+
+    .throttle-pill:hover {
+      border-color: #3b82f6 !important;
+      background: #000000 !important;
+      box-shadow: 0 0 14px rgba(37, 99, 235, 0.6) !important;
+      transform: translateY(-2px) scale(1.04);
+    }
+
+    .throttle-pill.active {
+      border-color: #60a5fa !important;
+      background: rgba(29, 78, 216, 0.3) !important;
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.8), inset 0 0 8px rgba(59, 130, 246, 0.3) !important;
+    }
+
+    .throttle-pill.active .pill-val {
+      color: #ffffff !important;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+    }
+
+    .throttle-pill.active .pill-lbl {
+      color: #93c5fd !important;
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+     COLUMN 2: TACTICAL NEURAL VIEWFINDER (YOLOV8)
+  ───────────────────────────────────────────────────────────── */
+    .col-hud {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .viewfinder-outer {
+      position: relative;
+      aspect-ratio: 4/3;
+      background: #000000;
+      overflow: hidden;
+      border-radius: 10px;
+      border: 1.5px solid #1d4ed8 !important;
+      box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.95), 0 0 20px rgba(29, 78, 216, 0.3) !important;
+    }
+
+    .viewfinder-stream {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      filter: contrast(1.04) brightness(0.98);
+    }
+
+    /* Compass Tape Ribbon on Top */
+    .compass-ribbon {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 28px;
+      background: #000000 !important;
+      border-bottom: 1.5px solid #1d4ed8 !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-telemetry);
+      font-size: 9px;
+      letter-spacing: 5px;
+      color: #ffffff !important;
+      pointer-events: none;
+      z-index: 15;
+      text-shadow: none !important;
+    }
+
+    .compass-ribbon span {
+      color: #ffffff !important;
+      text-shadow: none !important;
+    }
+
+    .compass-marker {
+      position: absolute;
+      top: 2px;
+      width: 2px;
+      height: 6px;
+      background: #ffffff;
+      box-shadow: none;
+    }
+
+    /* Tactical Viewfinder Overlay Brackets */
+    .viewfinder-hud-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .hud-bracket {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border-color: #3b82f6 !important;
+      border-style: solid;
+      border-width: 0;
+      opacity: 0.95;
+      filter: drop-shadow(0 0 6px #1d4ed8) !important;
+    }
+
+    .hud-bracket.tl {
+      top: 18px;
+      left: 18px;
+      border-top-width: 3px;
+      border-left-width: 3px;
+    }
+
+    .hud-bracket.tr {
+      top: 18px;
+      right: 18px;
+      border-top-width: 3px;
+      border-right-width: 3px;
+    }
+
+    .hud-bracket.bl {
+      bottom: 18px;
+      left: 18px;
+      border-bottom-width: 3px;
+      border-left-width: 3px;
+    }
+
+    .hud-bracket.br {
+      bottom: 18px;
+      right: 18px;
+      border-bottom-width: 3px;
+      border-right-width: 3px;
+    }
+
+    /* Animated Golden Laser Scan Beam */
+    .laser-scan-beam {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, #94a3b8 50%, transparent 100%);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.12);
+      opacity: 0.7;
+      animation: radar-laser-scan 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes radar-laser-scan {
+      0% {
+        top: 3%;
+        opacity: 0;
+      }
+
+      15% {
+        opacity: 0.85;
+      }
+
+      85% {
+        opacity: 0.85;
+      }
+
+      100% {
+        top: 97%;
+        opacity: 0;
+      }
+    }
+
+    /* Telemetry Status Ribbon below Feed */
+    .telemetry-ribbon-deck {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .tele-pod {
+      background: #000000 !important;
+      border: 1.5px solid #1d4ed8 !important;
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: none;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .tele-pod:hover {
+      transform: translateY(-3px) scale(1.02);
+      border-color: #3b82f6 !important;
+      box-shadow: 0 0 18px rgba(37, 99, 235, 0.5) !important;
+    }
+
+    .tele-pod-label {
+      font-size: 11px !important;
+      font-family: var(--font-tactical);
+      color: #94a3b8 !important;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      font-weight: 700;
+      text-shadow: none !important;
+    }
+
+    .tele-pod-val {
+      font-size: 24px !important;
+      font-weight: 800;
+      font-family: var(--font-telemetry);
+      color: #ffffff !important;
+      text-shadow: none !important;
+      transition: color 0.25s ease, text-shadow 0.25s ease;
+    }
+
+    .tele-pod:hover .tele-pod-val {
+      color: #60a5fa !important;
+      text-shadow: 0 0 12px rgba(96, 165, 250, 0.6) !important;
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+     COLUMN 3: ROBOTIC ARM 6-DOF & RADAR COCKPIT (COMPLETE BLACK)
+  ───────────────────────────────────────────────────────────── */
+    .col-arm-radar {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Interactive 6-DOF Kinematic Joint Deck */
+    .joint-controls-deck {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #000000 !important;
+    }
+
+    .joint-deck-title {
+      font-size: 12px !important;
+      font-weight: 800;
+      font-family: var(--font-tactical);
+      color: #ffffff !important;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-shadow: none !important;
+    }
+
+    .joint-deck-title span {
+      color: #ffffff !important;
+      text-shadow: none !important;
+    }
+
+    /* Base 360 Continuous Motor Control Pod */
+    .base-360-pod {
+      background: #000000 !important;
+      border: 1px solid var(--border-gold-lite);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: none;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+
+    .base-360-pod:hover {
+      border-color: #3b82f6 !important;
+      box-shadow: 0 0 14px rgba(37, 99, 235, 0.45) !important;
+    }
+
+    .base-pod-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .base-pod-title {
+      font-size: 9.5px;
+      font-weight: 800;
+      font-family: var(--font-tactical);
+      color: #ffffff !important;
+      letter-spacing: 1.2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-shadow: none !important;
+    }
+
+    .base-pod-title span {
+      color: #ffffff !important;
+      text-shadow: none !important;
+    }
+
+    .base-status-badge {
+      font-size: 9px;
+      font-family: var(--font-telemetry);
+      font-weight: 800;
+      color: #ffffff !important;
+      background: #000000 !important;
+      border: 1px solid var(--border-gold-lite);
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+      text-shadow: none !important;
+    }
+
+    .base-btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+    }
+
+    .base-jog-btn {
+      background: #000000 !important;
+      border: 1px solid var(--border-gold-lite);
+      border-radius: 5px;
+      color: #ffffff !important;
+      font-family: var(--font-telemetry);
+      font-size: 9px;
+      font-weight: 700;
+      padding: 7px 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+      user-select: none;
+      text-shadow: none !important;
+    }
+
+    .base-jog-btn span {
+      color: #ffffff !important;
+      text-shadow: none !important;
+    }
+
+    .base-jog-btn:hover {
+      border-color: #3b82f6 !important;
+      background: #000000 !important;
+      box-shadow: 0 0 14px rgba(37, 99, 235, 0.45) !important;
+      transform: translateY(-1px);
+    }
+
+    .base-jog-btn:active,
+    .base-jog-btn.active {
+      background: #000000 !important;
+      color: #ffffff !important;
+      border-color: #60a5fa !important;
+      box-shadow: 0 0 14px rgba(37, 99, 235, 0.6) !important;
+      transform: scale(0.96);
+    }
+
+    .base-stop-btn {
+      background: #000000 !important;
+      border: 1px solid var(--border-gold-lite);
+      color: #ffffff !important;
+    }
+
+    .base-stop-btn:hover {
+      border-color: #ef4444;
+      background: #000000 !important;
+      box-shadow: 0 0 12px rgba(255, 77, 77, 0.6);
+      color: #ffffff !important;
+      transform: translateY(-1px);
+    }
+
+    .base-stop-btn:active {
+      background: #000000 !important;
+      color: #ffffff !important;
+      border-color: #ef4444;
+      transform: scale(0.96);
+    }
+
+    .base-step-row {
+      display: flex;
+      gap: 4px;
+      justify-content: space-between;
+    }
+
+    .base-step-btn {
+      flex: 1;
+      background: #000000 !important;
+      border: 1px solid var(--border-gold-lite);
+      border-radius: 4px;
+      color: #ffffff !important;
+      font-family: var(--font-telemetry);
+      font-size: 8.5px;
+      font-weight: 700;
+      padding: 4px 2px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+      text-shadow: none !important;
+    }
+
+    .base-step-btn:hover {
+      border-color: #3b82f6 !important;
+      color: #ffffff !important;
+      background: #000000 !important;
+      box-shadow: 0 0 10px rgba(37, 99, 235, 0.45) !important;
+      transform: translateY(-1px);
+    }
+
+    .base-step-btn:active {
+      transform: scale(0.95);
+    }
+
+    .base-throttle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .base-throttle-lbl {
+      font-size: 8px;
+      font-family: var(--font-tactical);
+      color: #ffffff !important;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      opacity: 0.9;
+      text-shadow: none !important;
+    }
+
+    /* Positional Joint Sliders (CH1..CH5) */
+    .joint-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #000000 !important;
+      border: 1.5px solid #1d4ed8 !important;
+      border-radius: 10px;
+      padding: 16px 18px;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.95), 0 0 10px rgba(29, 78, 216, 0.2);
+    }
+
+    .joint-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: transform 0.2s ease;
+    }
+
+    .joint-row:hover {
+      transform: translateX(3px);
+    }
+
+    .joint-tag {
+      font-size: 13.5px !important;
+      font-family: var(--font-telemetry);
+      color: #ffffff !important;
+      width: 80px;
+      font-weight: 800;
+      white-space: nowrap;
+      letter-spacing: 0.8px;
+      text-shadow: none !important;
+    }
+
+    input[type=range].joint-slider {
+      flex: 1;
+      height: 8px !important;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(29, 78, 216, 0.6);
+      outline: none;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input[type=range].joint-slider:hover {
+      background: rgba(59, 130, 246, 0.25);
+      border-color: #3b82f6;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+    }
+
+    input[type=range].joint-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px !important;
+      height: 22px !important;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid #1d4ed8 !important;
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.7);
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+      cursor: pointer;
+    }
+
+    input[type=range].joint-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.3);
+      border-color: #60a5fa !important;
+      box-shadow: 0 0 18px rgba(59, 130, 246, 0.9);
+    }
+
+    .joint-deg {
+      font-size: 15px !important;
+      font-family: var(--font-telemetry);
+      color: #60a5fa !important;
+      width: 48px;
+      text-align: right;
+      font-weight: 800;
+      text-shadow: 0 0 8px rgba(96, 165, 250, 0.4) !important;
+    }
+    /* Tactical Proximity Radar Canvas */
+    .radar-container {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #000000 !important;
+    }
+
+    #radar-canvas {
+      display: block;
+      filter: none !important;
+      background: #000000 !important;
+      border-radius: 8px;
+      border: 1px solid var(--border-gold-lite);
+      transition: filter 0.3s ease;
+    }
+
+    #radar-canvas:hover {
+      filter: none !important;
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+     ROW 2: FULL-WIDTH TELEMETRY & LIVE TERMINAL (COMPLETE BLACK)
+  ───────────────────────────────────────────────────────────── */
+    .row-full {
+      grid-column: 1 / 4;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 18px;
+    }
+
+    /* Multi-Sensor Deck */
+    .sensor-deck {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      background: #000000 !important;
+      border-radius: 10px;
+      border: 1px solid var(--border-gold-lite);
+      overflow: hidden;
+    }
+
+    .sensor-card {
+      padding: 18px 20px;
+      border-right: 1px solid var(--border-gold-lite);
+      background: #000000 !important;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .sensor-card:hover {
+      background: rgba(29, 78, 216, 0.08) !important;
+      border-color: #3b82f6 !important;
+      transform: translateY(-2px);
+      box-shadow: inset 0 0 16px rgba(37, 99, 235, 0.25);
+    }
+
+    .sensor-card:hover .sensor-val {
+      color: #60a5fa !important;
+      text-shadow: 0 0 14px rgba(96, 165, 250, 0.6) !important;
+    }
+
+    .sensor-card:last-child {
+      border-right: none;
+    }
+
+    .sensor-label {
+      font-family: var(--font-tactical);
+      font-size: 11.5px !important;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      color: #94a3b8 !important;
+      text-transform: uppercase;
+      text-shadow: none !important;
+    }
+
+    .sensor-val {
+      font-family: var(--font-telemetry);
+      font-size: 30px !important;
+      font-weight: 800;
+      color: #ffffff !important;
+      text-shadow: none !important;
+      transition: all 0.25s ease;
+    }
+
+    .sensor-sub {
+      font-family: var(--font-telemetry);
+      font-size: 12px !important;
+      color: #ffffff !important;
+      opacity: 0.9;
+      text-shadow: none !important;
+    }
+
+    /* Ultrasonic Sonar Dynamic Progress Bar */
+    .sonar-meter-wrap {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 3px;
+      border: 1px solid var(--border-gold-lite);
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .sonar-meter-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--gold-grad);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      transition: width 0.3s ease;
+    }
+
+    /* Live Mission Terminal Log */
+    .terminal-deck {
+      background: #000000 !important;
+      border: 1.5px solid #1d4ed8 !important;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-family: var(--font-telemetry);
+      font-size: 10px;
+      color: #ffffff !important;
+      height: 160px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 0 14px rgba(29, 78, 216, 0.2) !important;
+      text-shadow: none !important;
+    }
+
+    .term-line {
+      display: flex;
+      gap: 10px;
+      line-height: 1.4;
+      animation: term-slide-in 0.25s ease-out both;
+    }
+
+    @keyframes term-slide-in {
+      from {
+        opacity: 0;
+        transform: translateX(-8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .term-time {
+      color: #ffffff !important;
+      opacity: 0.85;
+      flex-shrink: 0;
+      text-shadow: none !important;
+    }
+
+    .term-msg {
+      color: #ffffff !important;
+      text-shadow: none !important;
+    }
+
+    .term-msg.highlight {
+      color: #ffffff !important;
+      font-weight: 700;
+      text-shadow: none !important;
+    }
+
+    .term-msg.warn {
+      color: var(--amber-core) !important;
+      text-shadow: none !important;
+    }
+
+    .term-msg.danger {
+      color: var(--ruby-alert) !important;
+      text-shadow: none !important;
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+     CONFIG BAR (DOCK AT BOTTOM)
+  ───────────────────────────────────────────────────────────── */
+    .config-dock {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 28px;
+      background: #000000 !important;
+      border-top: 1.5px solid var(--border-gold-lite);
+      flex-wrap: wrap;
+    }
+
+    .cfg-label {
+      font-size: 9.5px;
+      font-family: var(--font-tactical);
+      color: #ffffff !important;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-shadow: none !important;
+    }
+
+    .cfg-input {
+      background: #000000 !important;
+      border: 1px solid var(--border-gold-lite);
+      color: #ffffff !important;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-family: var(--font-telemetry);
+      font-size: 11px;
+      outline: none;
+      transition: all 0.25s;
+      text-shadow: none !important;
+    }
+
+    .cfg-input:focus {
+      border-color: #3b82f6 !important;
+      box-shadow: 0 0 14px rgba(37, 99, 235, 0.45) !important;
+    }
+
+    .cfg-btn {
+      padding: 7px 18px;
+      border-radius: 6px;
+      border: 1px solid var(--border-gold-lite);
+      background: #000000 !important;
+      color: #ffffff !important;
+      font-family: var(--font-tactical);
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 1.8px;
+      cursor: pointer;
+      transition: all 0.25s;
+      box-shadow: none;
+      text-shadow: none !important;
+    }
+
+    .cfg-btn span {
+      color: #ffffff !important;
+      text-shadow: none !important;
+    }
+
+    .cfg-btn:hover {
+      background: #000000 !important;
+      border-color: #3b82f6 !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 16px rgba(37, 99, 235, 0.45) !important;
+      transform: translateY(-1px);
+    }
+
+    /* ── PICKING HUD OVERLAY ── */
+    #picking-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: #000000 !important;
+      border: 1px solid var(--border-gold-lite);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 24px;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+
+    #picking-overlay.visible {
+      display: flex;
+    }
+
+    .picking-hologram {
+      font-size: 72px;
+      animation: holo-spin 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      color: #ffffff;
+    }
+
+    @keyframes holo-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .picking-title {
+      font-family: var(--font-brand);
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 5px;
+      color: #ffffff !important;
+      text-shadow: none !important;
+    }
+
+    .picking-bar-track {
+      width: 380px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid var(--border-gold-lite);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .picking-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--gold-grad);
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+      transition: width 0.4s linear;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ══════════════════════════════════════════ APEX COCKPIT HEADER ═══════════════════════════════════════════ -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-title">
+        <span class="brand-symbol" title="Smart Waste Management">♻️</span>
+        <span>SMART WASTE MANAGEMENT SYSTEM USING AI VISION AND ROBOTIC MANIPULATION</span>
+      </div>
+    </div>
+
+    <div class="topbar-center">
+      <div class="telecom-pill offline" id="pill-cam" title="ESP32-CAM Status">
+        <span class="telecom-signal" id="sig-cam"></span>
+        <span id="txt-cam">CAM DISCONNECTED</span>
+      </div>
+      <div class="telecom-pill offline" id="pill-devkit" title="ESP32 DevKit Status">
+        <span class="telecom-signal" id="sig-devkit"></span>
+        <span id="txt-devkit">DEVKIT DISCONNECTED</span>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="estop-module">
+        <button id="btn-estop" onclick="triggerEStop()">
+          <span>⬛</span> E-STOP
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── DYNAMIC LASER SCROLL PROGRESS TRACKER ── -->
+  <div class="scroll-progress-container">
+    <div class="scroll-progress-bar" id="scroll-bar">
+      <span class="scroll-laser-spark"></span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ COCKPIT GRID ═══════════════════════════════════════════ -->
+  <main class="cockpit-grid">
+
+    <!-- ══ COLUMN 1: DRIVE & CHASSIS ══ -->
+    <div class="col-drive">
+
+      <!-- Operating Mode Switcher -->
+      <div class="tactical-card scroll-reveal in-view">
+        <div class="card-header">
+          <span class="card-title"><span class="card-title-icon">🚛</span> TRUCK MODE</span>
+          <span class="card-badge" id="badge-mode">MANUAL</span>
+        </div>
+        <div class="mode-switch-wrap">
+          <div class="mode-switch-grid">
+            <button class="mode-tab active" id="btn-manual" onclick="setMode('MANUAL')">
+              <span>🕹️ MANUAL</span>
+              <span class="mode-tab-sub">DIRECT DRIVE</span>
+            </button>
+            <button class="mode-tab" id="btn-auto" onclick="setMode('AUTO')">
+              <span>🤖 AUTONOMOUS</span>
+              <span class="mode-tab-sub">YOLO AI PURSUIT</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4WD Tactical Chassis Visualizer & Controls -->
+      <div class="tactical-card scroll-reveal in-view">
+        <div class="card-header">
+          <span class="card-title"><span class="card-title-icon">🚛</span> 4WD TRUCK CHASSIS</span>
+          <span class="card-badge">WASD HAPTIC</span>
+        </div>
+
+        <!-- Real-Time Wheel Vector Schematic -->
+        <div class="chassis-visualizer">
+          <div class="chassis-schematic-wrap">
+            <div class="wheel-node fl" id="wheel-fl">FL</div>
+            <div class="wheel-node fr" id="wheel-fr">FR</div>
+            <div class="chassis-body-box">
+              <span class="vector-arrow" id="vector-arrow">●</span>
+              <span id="vector-label" style="font-size:11px;letter-spacing:1px;margin-top:2px;color:#ffffff;font-weight:900;">IDLE</span>
+            </div>
+            <div class="wheel-node rl" id="wheel-rl">RL</div>
+            <div class="wheel-node rr" id="wheel-rr">RR</div>
+          </div>
+        </div>
+
+        <!-- Tactile D-PAD -->
+        <div class="dpad-console">
+          <div class="dpad-grid">
+            <button class="dpad-btn" id="btn-wa" title="[Q] Curve Left (FR+RR Forward, FL+RL Stop)"
+              onmousedown="driveStart('CMD:FORWARD_LEFT')" onmouseup="driveStop()"
+              ontouchstart="driveStart('CMD:FORWARD_LEFT')" ontouchend="driveStop()">
+              <span class="dpad-btn-icon">↖</span>
+              <span class="dpad-btn-key">Q</span>
+            </button>
+            <button class="dpad-btn" id="btn-w" title="[W] 4WD Forward (All 4 Motors Forward)"
+              onmousedown="driveStart('CMD:FORWARD')" onmouseup="driveStop()" ontouchstart="driveStart('CMD:FORWARD')"
+              ontouchend="driveStop()">
+              <span class="dpad-btn-icon">▲</span>
+              <span class="dpad-btn-key">W</span>
+            </button>
+            <button class="dpad-btn" id="btn-wd" title="[E] Curve Right (FL+RL Forward, FR+RR Stop)"
+              onmousedown="driveStart('CMD:FORWARD_RIGHT')" onmouseup="driveStop()"
+              ontouchstart="driveStart('CMD:FORWARD_RIGHT')" ontouchend="driveStop()">
+              <span class="dpad-btn-icon">↗</span>
+              <span class="dpad-btn-key">E</span>
+            </button>
+
+            <button class="dpad-btn" id="btn-a" title="[A] Pivot Left (FR+RR Forward, FL+RL Reverse)"
+              onmousedown="driveStart('CMD:LEFT')" onmouseup="driveStop()" ontouchstart="driveStart('CMD:LEFT')"
+              ontouchend="driveStop()">
+              <span class="dpad-btn-icon">◀</span>
+              <span class="dpad-btn-key">A</span>
+            </button>
+            <button class="dpad-btn dpad-center-stop" id="btn-stop" title="[STOP / X / Space] Emergency Stop"
+              onclick="sendCmd('CMD:STOP'); playSFX('click');">
+              <span class="dpad-btn-icon">■</span>
+              <span class="dpad-btn-key">STOP</span>
+            </button>
+            <button class="dpad-btn" id="btn-d" title="[D] Pivot Right (FL+RL Forward, FR+RR Reverse)"
+              onmousedown="driveStart('CMD:RIGHT')" onmouseup="driveStop()" ontouchstart="driveStart('CMD:RIGHT')"
+              ontouchend="driveStop()">
+              <span class="dpad-btn-icon">▶</span>
+              <span class="dpad-btn-key">D</span>
+            </button>
+
+            <button class="dpad-btn" id="btn-z" title="[Z] Reverse Left (FR+RR Reverse, FL+RL Stop)"
+              onmousedown="driveStart('CMD:BACK_LEFT')" onmouseup="driveStop()"
+              ontouchstart="driveStart('CMD:BACK_LEFT')" ontouchend="driveStop()">
+              <span class="dpad-btn-icon">↙</span>
+              <span class="dpad-btn-key">Z</span>
+            </button>
+            <button class="dpad-btn" id="btn-s" title="[S] 4WD Reverse (All 4 Motors Reverse)"
+              onmousedown="driveStart('CMD:BACKWARD')" onmouseup="driveStop()" ontouchstart="driveStart('CMD:BACKWARD')"
+              ontouchend="driveStop()">
+              <span class="dpad-btn-icon">▼</span>
+              <span class="dpad-btn-key">S</span>
+            </button>
+            <button class="dpad-btn" id="btn-c" title="[C] Reverse Right (FL+RL Reverse, FR+RR Stop)"
+              onmousedown="driveStart('CMD:BACK_RIGHT')" onmouseup="driveStop()"
+              ontouchstart="driveStart('CMD:BACK_RIGHT')" ontouchend="driveStop()">
+              <span class="dpad-btn-icon">↘</span>
+              <span class="dpad-btn-key">C</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Throttle PWM Slider -->
+        <div class="throttle-deck">
+          <div class="throttle-meta">
+            <span>PWM MOTOR THROTTLE</span>
+            <span class="throttle-val-readout" id="speed-val">75%</span>
+          </div>
+          <input type="range" class="throttle-bar" id="speed-slider" min="20" max="100" value="75"
+            oninput="setMotorThrottle(this.value)" onchange="setMotorThrottle(this.value)">
+          <div class="throttle-pills">
+            <button type="button" class="throttle-pill" id="pill-spd-40" onclick="quickSetThrottle(40)" title="Set 40% Creep Speed">
+              <span class="pill-val">40%</span>
+              <span class="pill-lbl">CREEP</span>
+            </button>
+            <button type="button" class="throttle-pill" id="pill-spd-60" onclick="quickSetThrottle(60)" title="Set 60% Eco Speed">
+              <span class="pill-val">60%</span>
+              <span class="pill-lbl">ECO</span>
+            </button>
+            <button type="button" class="throttle-pill active" id="pill-spd-75" onclick="quickSetThrottle(75)" title="Set 75% Cruise Speed">
+              <span class="pill-val">75%</span>
+              <span class="pill-lbl">CRUISE</span>
+            </button>
+            <button type="button" class="throttle-pill" id="pill-spd-100" onclick="quickSetThrottle(100)" title="Set 100% Max Speed">
+              <span class="pill-val">100%</span>
+              <span class="pill-lbl">MAX</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══ COLUMN 2: TACTICAL NEURAL HUD ══ -->
+    <div class="col-hud">
+
+      <!-- Viewfinder Screen -->
+      <div class="tactical-card scroll-reveal in-view" id="card-hud">
+        <div class="card-header">
+          <span class="card-title"><span class="card-title-icon">🎯</span> NEURAL OPTIC HUD · YOLOV8</span>
+          <span class="card-badge" id="ai-fps-badge">-- FPS</span>
+        </div>
+
+        <div class="viewfinder-outer" id="viewfinder-box">
+          <div class="compass-ribbon">
+            <span>W ··· 270 ··· 300 ··· 330 ··· N ··· 030 ··· 060 ··· E</span>
+            <div class="compass-marker"></div>
+          </div>
+
+          <img class="viewfinder-stream" id="cam-feed" src="/video_feed" alt="Neural Feed"
+            onerror="setTimeout(()=>{this.src='/video_feed?t='+Date.now();},1200);">
+
+          <div class="viewfinder-hud-overlay">
+            <div class="hud-bracket tl"></div>
+            <div class="hud-bracket tr"></div>
+            <div class="hud-bracket bl"></div>
+            <div class="hud-bracket br"></div>
+            <div class="laser-scan-beam"></div>
+          </div>
+        </div>
+
+        <!-- Telemetry Readout Pods below Video -->
+        <div style="padding:16px;">
+          <div class="telemetry-ribbon-deck">
+            <div class="tele-pod">
+              <span class="tele-pod-label">TARGET CLASS</span>
+              <span class="tele-pod-val" id="det-class">—</span>
+            </div>
+            <div class="tele-pod">
+              <span class="tele-pod-label">CONFIDENCE</span>
+              <span class="tele-pod-val" id="det-conf">—</span>
+            </div>
+            <div class="tele-pod">
+              <span class="tele-pod-label">TARGET VECTOR</span>
+              <span class="tele-pod-val" id="det-vector">—</span>
+            </div>
+            <div class="tele-pod">
+              <span class="tele-pod-label">AI INFERENCE</span>
+              <span class="tele-pod-val" id="det-fps">— FPS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══ COLUMN 3: ROBOTIC ARM & RADAR ══ -->
+    <div class="col-arm-radar">
+
+      <!-- 6-DOF Robotic Arm: 6 Motors Dedicated Deck -->
+      <div class="tactical-card scroll-reveal in-view">
+        <div class="card-header">
+          <span class="card-title"><span class="card-title-icon">🦾</span> 6-DOF ROBOTIC ARM</span>
+          <span class="card-badge">PCA9685 · CH 0..5</span>
+        </div>
+
+        <div class="joint-controls-deck">
+          <div class="joint-deck-title">
+            <span>6-SERVO DIRECT KINEMATICS</span>
+            <span style="color:#ffffff;font-size:8px;">PCA9685 · CH 0..5</span>
+          </div>
+
+          <!-- M1..M6: 6 Kinematic Joints (CH0..CH5) -->
+          <div class="joint-list">
+            <!-- M1 · BASE 360° (CH0) -->
+            <div class="joint-row">
+              <span class="joint-tag">M1·BASE</span>
+              <input type="range" class="joint-slider" id="joint-slider-0" min="0" max="360" value="180"
+                oninput="updateJoint(0,this.value)">
+              <span class="joint-deg" id="jv0">180°</span>
+            </div>
+
+            <!-- M2 · SHOULDER (CH1) -->
+            <div class="joint-row">
+              <span class="joint-tag">M2·SHLD</span>
+              <input type="range" class="joint-slider" id="joint-slider-1" min="0" max="180" value="100"
+                oninput="updateJoint(1,this.value)">
+              <span class="joint-deg" id="jv1">100°</span>
+            </div>
+
+            <!-- M3 · ELBOW (CH2) -->
+            <div class="joint-row">
+              <span class="joint-tag">M3·ELBW</span>
+              <input type="range" class="joint-slider" id="joint-slider-2" min="0" max="180" value="90"
+                oninput="updateJoint(2,this.value)">
+              <span class="joint-deg" id="jv2">90°</span>
+            </div>
+
+            <!-- M4 · WRIST PITCH (CH3) -->
+            <div class="joint-row">
+              <span class="joint-tag">M4·PITCH</span>
+              <input type="range" class="joint-slider" id="joint-slider-3" min="0" max="180" value="90"
+                oninput="updateJoint(3,this.value)">
+              <span class="joint-deg" id="jv3">90°</span>
+            </div>
+
+            <!-- M5 · WRIST ROLL (CH4) -->
+            <div class="joint-row">
+              <span class="joint-tag">M5·ROLL</span>
+              <input type="range" class="joint-slider" id="joint-slider-4" min="0" max="180" value="90"
+                oninput="updateJoint(4,this.value)">
+              <span class="joint-deg" id="jv4">90°</span>
+            </div>
+
+            <!-- M6 · CLAW / GRIPPER (CH5) -->
+            <div class="joint-row">
+              <span class="joint-tag">M6·CLAW</span>
+              <input type="range" class="joint-slider" id="joint-slider-5" min="0" max="180" value="90"
+                oninput="updateJoint(5,this.value)">
+              <span class="joint-deg" id="jv5">90°</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tactical Proximity Radar -->
+      <div class="tactical-card scroll-reveal in-view" id="card-radar">
+        <div class="card-header">
+          <span class="card-title"><span class="card-title-icon">📡</span> PROXIMITY RADAR · HC-SR04</span>
+          <span class="card-badge" id="radar-dist-badge">NO ECHO</span>
+        </div>
+        <div class="radar-container">
+          <canvas id="radar-canvas" width="280" height="140"></canvas>
+        </div>
+
+        <!-- Ultrasonic Live Detection HUD Pod -->
+        <div style="padding:0 16px 14px;display:flex;flex-direction:column;gap:8px;">
+          <div
+            style="display:flex;justify-content:space-between;align-items:center;background:#000000;padding:10px 14px;border-radius:8px;border:1.5px solid var(--border-gold-lite);">
+            <div>
+              <div style="font-size:11px;font-family:var(--font-tactical);color:#94a3b8;letter-spacing:1px;font-weight:700;">SONAR ECHO DISTANCE</div>
+              <div id="radar-big-dist"
+                style="font-size:22px;font-weight:800;font-family:var(--font-telemetry);color:#60a5fa;text-shadow:0 0 10px rgba(96,165,250,0.5);">— <span
+                  style="font-size:13px;color:#ffffff;">cm</span></div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:11px;font-family:var(--font-tactical);color:#94a3b8;letter-spacing:1px;font-weight:700;">BRAKE THRESHOLD</div>
+              <div id="radar-safety-status"
+                style="font-size:13px;font-weight:800;font-family:var(--font-telemetry);color:#ffffff;">15 CM (ARMED)
+              </div>
+            </div>
+          </div>
+
+          <!-- Multi-Zone Safety Zone Bar -->
+          <div
+            style="display:flex;height:6px;border-radius:3px;overflow:hidden;background:#000000;border:1px solid var(--border-gold-lite);gap:2px;">
+            <div style="width:20%;background:#ef4444;opacity:0.85;" title="CRITICAL STOP (<15cm)"></div>
+            <div style="width:25%;background:#f59e0b;opacity:0.85;" title="CAUTION APPROACH (15-35cm)"></div>
+            <div style="width:55%;background:var(--gold-400);opacity:0.85;" title="CLEAR PATH (>35cm)"></div>
+          </div>
+          <div
+            style="display:flex;justify-content:space-between;font-size:7.5px;font-family:var(--font-telemetry);color:#ffffff;">
+            <span style="color:#ffffff;">0 CM (AUTO-STOP)</span>
+            <span style="color:#ffffff;">15 CM</span>
+            <span style="color:#ffffff;">35 CM</span>
+            <span style="color:#ffffff;">200 CM (CLEAR)</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══ ROW 2: FULL-WIDTH TELEMETRY & LIVE TERMINAL ══ -->
+    <div class="row-full">
+
+      <!-- Multi-Sensor Deck -->
+      <div class="sensor-deck scroll-reveal">
+        <!-- Sonar -->
+        <div class="sensor-card">
+          <span class="sensor-label">🦇 ULTRASONIC RANGE</span>
+          <span class="sensor-val" id="telem-dist">— <span style="font-size:12px;color:#ffffff;">cm</span></span>
+          <div class="sonar-meter-wrap">
+            <div class="sonar-meter-fill" id="sonar-meter-fill" style="width:0%;"></div>
+          </div>
+          <span class="sensor-sub" id="sonar-status">NO READING</span>
+        </div>
+
+        <!-- IR Proximity -->
+        <div class="sensor-card">
+          <span class="sensor-label">🔴 IR PROXIMITY SENSORS</span>
+          <div style="display:flex;gap:8px;margin-top:6px;">
+            <span id="ir-l-badge"
+              style="padding:4px 10px;border-radius:4px;font-family:var(--font-telemetry);font-size:10px;font-weight:800;border:1px solid var(--border-gold-lite);background:#000000;color:#ffffff;">L:
+              CLEAR</span>
+            <span id="ir-r-badge"
+              style="padding:4px 10px;border-radius:4px;font-family:var(--font-telemetry);font-size:10px;font-weight:800;border:1px solid var(--border-gold-lite);background:#000000;color:#ffffff;">R:
+              CLEAR</span>
+          </div>
+          <span class="sensor-sub" id="ir-collision-status" style="margin-top:4px;">PATH: UNBLOCKED</span>
+        </div>
+
+        <!-- GPS Nav -->
+        <div class="sensor-card">
+          <span class="sensor-label">🛰️ GPS NAVIGATION</span>
+          <span class="sensor-val" style="font-size:14px;margin-top:4px;" id="gps-coords">0.000000, 0.000000</span>
+          <span class="sensor-sub" id="gps-fix-status">Fix: NONE · Sats: 0</span>
+        </div>
+
+        <!-- Sorting Stats -->
+        <div class="sensor-card">
+          <span class="sensor-label">♻️ WASTE SORTED TOTAL</span>
+          <span class="sensor-val" id="stat-total-picked">0</span>
+          <span class="sensor-sub" id="stat-breakdown">BATTERIES: 0 · CUPS: 0</span>
+        </div>
+      </div>
+
+      <!-- Live Event Terminal Deck -->
+      <div class="terminal-deck scroll-reveal" id="term-log">
+        <div class="term-line">
+          <span class="term-time">[SYS_INIT]</span>
+          <span class="term-msg highlight">SMART WASTE MANAGEMENT SYSTEM ONLINE</span>
+        </div>
+        <div class="term-line">
+          <span class="term-time">[COMMS]</span>
+          <span class="term-msg">ESTABLISHED HIGH-FREQUENCY UDP LINK (8888)</span>
+        </div>
+        <div class="term-line">
+          <span class="term-time">[AI_VISION]</span>
+          <span class="term-msg">YOLOv8m NEURAL PIPELINE READY</span>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ══════════════════════════════════════════ CONFIG DOCK ═══════════════════════════════════════════ -->
+  <footer class="config-dock scroll-reveal">
+    <span class="cfg-label">ESP32-CAM STREAM:</span>
+    <input class="cfg-input" id="cfg-cam" value="http://192.168.137.200:81/stream" style="width:240px;" placeholder="http://192.168.137.200:81/stream">
+    <span class="cfg-label">ROBOT LINK (BT / IP):</span>
+    <input class="cfg-input" id="cfg-devkit" value="Auto-Detect (BT)" placeholder="Auto-Detect (BT) or COMx" style="width:170px;">
+    <button class="cfg-btn" onclick="applyConfig()">APPLY LINK</button>
+    <div style="flex:1;"></div>
+    <span style="font-family:var(--font-telemetry);font-size:9px;color:#ffffff;letter-spacing:1.5px;opacity:0.9;">
+      SMART WASTE MANAGEMENT SYSTEM · AI VISION & ROBOTIC MANIPULATION
+    </span>
+  </footer>
+
+  <!-- ══════════════════════════════════════════ PICKING OVERLAY ═══════════════════════════════════════════ -->
+  <div id="picking-overlay">
+    <div class="picking-hologram">⚙️</div>
+    <div class="picking-title">ARM SORTING SEQUENCE IN PROGRESS</div>
+    <div style="font-family:var(--font-telemetry);font-size:12px;color:#ffffff;letter-spacing:2px;"
+      id="picking-item-label">
+      SORTING OBJECT INTO TARGET BIN...
+    </div>
+    <div class="picking-bar-track">
+      <div class="picking-bar-fill" id="picking-bar-fill"></div>
+    </div>
+  </div>
+
+  <script>
+    // ══════════════════════════════════════════════════════
+    function playSFX(type) {
+      // Audio SFX silenced
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  TERMINAL LOG SYSTEM
+    // ══════════════════════════════════════════════════════
+    function logTerminal(msg, type = 'normal') {
+      const logEl = document.getElementById('term-log');
+      if (!logEl) return;
+      const now = new Date();
+      const timeStr = `[${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(Math.floor(now.getMilliseconds() / 10)).padStart(2, '0')}]`;
+
+      const line = document.createElement('div');
+      line.className = 'term-line';
+      line.innerHTML = `<span class="term-time">${timeStr}</span><span class="term-msg ${type}">${msg}</span>`;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+
+      // Keep max 80 lines
+      if (logEl.children.length > 80) logEl.removeChild(logEl.firstChild);
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  WEBSOCKET COMMS
+    // ══════════════════════════════════════════════════════
+    let ws = null;
+    let lastTargetLocked = false;
+    let pickStartTime = 0;
+    const pickDuration = 7000;
+
+    function connectWS() {
+      const wsUrl = `ws://${location.host}/ws`;
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        logTerminal('WEBSOCKET HANDSHAKE CONFIRMED (LIVE LINK ACTIVE)', 'highlight');
+        sendCmd(`CMD:SPEED:${currentThrottleVal}`);
+      };
+
+      ws.onclose = () => {
+        const pCam = document.getElementById('pill-cam');
+        const tCam = document.getElementById('txt-cam');
+        if (pCam) pCam.className = 'telecom-pill offline';
+        if (tCam) tCam.textContent = 'CAM DISCONNECTED';
+
+        const pDvk = document.getElementById('pill-devkit');
+        const tDvk = document.getElementById('txt-devkit');
+        if (pDvk) pDvk.className = 'telecom-pill offline';
+        if (tDvk) tDvk.textContent = 'DEVKIT DISCONNECTED';
+
+        setTimeout(connectWS, 1500);
+      };
+
+      ws.onmessage = (e) => {
+        try {
+          const d = JSON.parse(e.data);
+          if (d.type === 'state') updateState(d);
+        } catch (err) { }
+      };
+
+      ws.onerror = () => ws.close();
+    }
+    connectWS();
+
+    function sendMsg(obj) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(obj));
+      }
+    }
+
+    function sendCmd(cmd) {
+      sendMsg({ type: 'cmd', cmd });
+      logTerminal(`CMD DISPATCH: ${cmd}`, 'normal');
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  STATE & HUD UPDATES
+    // ══════════════════════════════════════════════════════
+    function updateState(d) {
+      // Comms Status
+      const camOnline = !!d.cam_online;
+      const devkitOnline = !!d.devkit_online;
+
+      const pCam = document.getElementById('pill-cam');
+      const tCam = document.getElementById('txt-cam');
+      if (pCam) pCam.className = camOnline ? 'telecom-pill online' : 'telecom-pill offline';
+      if (tCam) tCam.textContent = camOnline ? 'CAM MODULE CONNECTED' : 'CAM DISCONNECTED';
+
+      const pDvk = document.getElementById('pill-devkit');
+      const tDvk = document.getElementById('txt-devkit');
+      if (pDvk) pDvk.className = devkitOnline ? 'telecom-pill online' : 'telecom-pill offline';
+      if (tDvk) tDvk.textContent = devkitOnline ? 'DEVKIT CONNECTED' : 'DEVKIT DISCONNECTED';
+
+      // Mode Tabs
+      const isAuto = d.mode === 'AUTO';
+      document.getElementById('btn-auto').classList.toggle('active', isAuto);
+      document.getElementById('btn-manual').classList.toggle('active', !isAuto);
+      document.getElementById('badge-mode').textContent = d.mode;
+
+      // FPS
+      document.getElementById('ai-fps-badge').textContent = `${d.fps} FPS`;
+      document.getElementById('det-fps').textContent = `${d.fps} FPS`;
+
+      // YOLO Target Detection
+      const det = d.detection;
+      if (det && det.found) {
+        document.getElementById('det-class').textContent = det.class.toUpperCase();
+        document.getElementById('det-conf').textContent = `${det.conf}%`;
+        const dx = det.cx - 320;
+        document.getElementById('det-vector').textContent = dx < -25 ? '← PORT' : dx > 25 ? 'STBD →' : '● ON TARGET';
+
+        if (!lastTargetLocked) {
+          playSFX('target');
+          logTerminal(`🎯 TARGET ACQUIRED: ${det.class.toUpperCase()} (${det.conf}%)`, 'highlight');
+          lastTargetLocked = true;
+        }
+      } else {
+        document.getElementById('det-class').textContent = '—';
+        document.getElementById('det-conf').textContent = '—';
+        document.getElementById('det-vector').textContent = 'SEARCHING';
+        lastTargetLocked = false;
+      }
+
+      // Arm Picking Overlay
+      const pickEl = document.getElementById('picking-overlay');
+      if (d.picking) {
+        pickEl.classList.add('visible');
+        document.getElementById('picking-item-label').textContent = d.pick_item || 'EXECUTING ARM KINEMATICS...';
+        const elapsed = (Date.now() - pickStartTime) / pickDuration * 100;
+        document.getElementById('picking-bar-fill').style.width = Math.min(100, elapsed) + '%';
+      } else {
+        pickEl.classList.remove('visible');
+        if (pickEl.classList.contains('visible')) pickStartTime = Date.now();
+      }
+
+      // Telemetry Sensors
+      const t = d.telemetry;
+      if (t) {
+        const dist = parseFloat(t.dist);
+        if (dist > 0) {
+          document.getElementById('telem-dist').innerHTML = `${dist.toFixed(1)} <span style="font-size:12px;color:#ffffff;">cm</span>`;
+          const pct = Math.max(0, Math.min(100, (1 - dist / 200) * 100));
+          document.getElementById('sonar-meter-fill').style.width = pct + '%';
+
+          if (dist < 18) {
+            document.getElementById('sonar-status').innerHTML = '<span style="color:#ef4444;font-weight:700;">⚠️ PROXIMITY HAZARD</span>';
+            document.getElementById('sonar-meter-fill').style.background = '#ef4444';
+          } else {
+            document.getElementById('sonar-status').innerHTML = '<span style="color:#ffffff;">ALL CLEAR</span>';
+            document.getElementById('sonar-meter-fill').style.background = 'var(--gold-grad)';
+          }
+        } else {
+          document.getElementById('telem-dist').innerHTML = `— <span style="font-size:12px;color:#ffffff;">cm</span>`;
+          document.getElementById('sonar-status').textContent = 'NO READING';
+        }
+
+        // IR Badges
+        const irL = document.getElementById('ir-l-badge');
+        const irR = document.getElementById('ir-r-badge');
+        irL.textContent = `L: ${t.ir_l ? 'OBSTACLE' : 'CLEAR'}`;
+        irR.textContent = `R: ${t.ir_r ? 'OBSTACLE' : 'CLEAR'}`;
+        irL.style.borderColor = t.ir_l ? '#ef4444' : 'var(--border-gold-lite)';
+        irR.style.borderColor = t.ir_r ? '#ef4444' : 'var(--border-gold-lite)';
+        irL.style.color = t.ir_l ? '#fca5a5' : '#ffffff';
+        irR.style.color = t.ir_r ? '#fca5a5' : '#ffffff';
+        irL.style.background = t.ir_l ? 'rgba(239, 68, 68, 0.25)' : '#000000';
+        irR.style.background = t.ir_r ? 'rgba(239, 68, 68, 0.25)' : '#000000';
+        document.getElementById('ir-collision-status').textContent = t.obst ? '⚠️ OBSTACLE HALT' : 'PATH: UNBLOCKED';
+
+        // GPS
+        document.getElementById('gps-coords').textContent = `${parseFloat(t.lat).toFixed(6)}, ${parseFloat(t.lon).toFixed(6)}`;
+        document.getElementById('gps-fix-status').textContent = `Fix: ${t.fix ? '3D LOCK' : 'NONE'} · Sats: ${t.sats}`;
+
+        // Update Radar Distance
+        updateRadarDist(dist);
+
+        // Update Proximity Radar HUD Elements
+        const radarBadge = document.getElementById('radar-dist-badge');
+        const radarBigDist = document.getElementById('radar-big-dist');
+        const radarSafety = document.getElementById('radar-safety-status');
+
+        if (dist > 0 && dist <= 200) {
+          if (dist < 15) {
+            if (radarBadge) {
+              radarBadge.textContent = `⚠️ ${dist.toFixed(1)} CM HAZARD`;
+              radarBadge.style.borderColor = '#ef4444';
+              radarBadge.style.color = '#fca5a5';
+              radarBadge.style.background = 'rgba(239, 68, 68, 0.2)';
+            }
+            if (radarSafety) radarSafety.innerHTML = '<span style="color:#ef4444;font-weight:800;">🚨 AUTO-BRAKE STOP</span>';
+          } else if (dist < 35) {
+            if (radarBadge) {
+              radarBadge.textContent = `${dist.toFixed(1)} CM CAUTION`;
+              radarBadge.style.borderColor = '#f59e0b';
+              radarBadge.style.color = '#fbbf24';
+              radarBadge.style.background = 'rgba(245, 158, 11, 0.15)';
+            }
+            if (radarSafety) radarSafety.innerHTML = '<span style="color:#f59e0b;font-weight:800;">⚡ APPROACH DISTANCE</span>';
+          } else {
+            if (radarBadge) {
+              radarBadge.textContent = `${dist.toFixed(1)} CM DETECTED`;
+              radarBadge.style.borderColor = 'var(--border-gold-lite)';
+              radarBadge.style.color = '#ffffff';
+              radarBadge.style.background = '#000000';
+            }
+            if (radarSafety) radarSafety.innerHTML = '<span style="color:#ffffff;font-weight:800;">● PATH NOMINAL</span>';
+          }
+          if (radarBigDist) radarBigDist.innerHTML = `${dist.toFixed(1)} <span style="font-size:11px;color:#ffffff;">cm</span>`;
+        } else {
+          if (radarBadge) {
+            radarBadge.textContent = 'NO ECHO';
+            radarBadge.style.borderColor = 'var(--border-gold-lite)';
+            radarBadge.style.color = '#ffffff';
+            radarBadge.style.background = '#000000';
+          }
+          if (radarBigDist) radarBigDist.innerHTML = `— <span style="font-size:11px;color:#ffffff;">cm</span>`;
+          if (radarSafety) radarSafety.innerHTML = '<span style="color:#ffffff;">15 CM (ARMED)</span>';
+        }
+      }
+
+      // Waste Stats
+      document.getElementById('stat-total-picked').textContent = d.items_picked || 0;
+      document.getElementById('stat-breakdown').textContent = `DEGRADABLE (RIGHT 180°): ${d.degradable || 0} · NON-DEGRADABLE (LEFT 180°): ${d.non_degradable || 0}`;
+
+      // Config Sync
+      if (d.cam_url) document.getElementById('cfg-cam').value = d.cam_url;
+      if (d.devkit_ip) document.getElementById('cfg-devkit').value = d.devkit_ip;
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  TACTICAL DRIVE & SCHEMATIC CONTROLS
+    // ══════════════════════════════════════════════════════
+    const wheels = ['wheel-fl', 'wheel-fr', 'wheel-rl', 'wheel-rr'];
+
+    function setWheelState(wheelId, state) {
+      const el = document.getElementById(wheelId);
+      if (!el) return;
+      el.classList.remove('spinning', 'spin-fwd', 'spin-rev');
+      const baseTag = wheelId.replace('wheel-', '').toUpperCase();
+      if (state === 'fwd') {
+        el.classList.add('spinning', 'spin-fwd');
+        el.innerHTML = `▲ ${baseTag}`;
+      } else if (state === 'rev') {
+        el.classList.add('spinning', 'spin-rev');
+        el.innerHTML = `▼ ${baseTag}`;
+      } else {
+        el.textContent = baseTag;
+      }
+    }
+
+    function updateWheelSchematic(cmd) {
+      const arrow = document.getElementById('vector-arrow');
+      const label = document.getElementById('vector-label');
+
+      if (cmd === 'CMD:FORWARD') {
+        // W: All 4 wheels rotate forward
+        setWheelState('wheel-fl', 'fwd');
+        setWheelState('wheel-fr', 'fwd');
+        setWheelState('wheel-rl', 'fwd');
+        setWheelState('wheel-rr', 'fwd');
+        if (arrow) { arrow.textContent = '▲'; arrow.style.color = '#ffffff'; }
+        if (label) label.textContent = 'ALL 4WD FWD';
+
+      } else if (cmd === 'CMD:BACKWARD' || cmd === 'CMD:REVERSE') {
+        // S: All 4 wheels rotate reverse / backward
+        setWheelState('wheel-fl', 'rev');
+        setWheelState('wheel-fr', 'rev');
+        setWheelState('wheel-rl', 'rev');
+        setWheelState('wheel-rr', 'rev');
+        if (arrow) { arrow.textContent = '▼'; arrow.style.color = '#ffffff'; }
+        if (label) label.textContent = 'ALL REVERSE';
+
+      } else if (cmd === 'CMD:FORWARD_LEFT') {
+        // Q: FR and RR rotate forward, FL and RL stop
+        setWheelState('wheel-fl', 'stop');
+        setWheelState('wheel-fr', 'fwd');
+        setWheelState('wheel-rl', 'stop');
+        setWheelState('wheel-rr', 'fwd');
+        if (arrow) { arrow.textContent = '↖'; arrow.style.color = '#ffffff'; }
+        if (label) label.textContent = 'FR+RR FWD [Q]';
+
+      } else if (cmd === 'CMD:FORWARD_RIGHT') {
+        // E: FL and RL rotate forward, FR and RR stop
+        setWheelState('wheel-fl', 'fwd');
+        setWheelState('wheel-fr', 'stop');
+        setWheelState('wheel-rl', 'fwd');
+        setWheelState('wheel-rr', 'stop');
+        if (arrow) { arrow.textContent = '↗'; arrow.style.color = '#ffffff'; }
+        if (label) label.textContent = 'FL+RL FWD [E]';
+
+      } else if (cmd === 'CMD:LEFT') {
+        // A: FR and RR rotate forward, FL and RL rotate reverse (pivot left)
+        setWheelState('wheel-fl', 'rev');
+        setWheelState('wheel-fr', 'fwd');
+        setWheelState('wheel-rl', 'rev');
+        setWheelState('wheel-rr', 'fwd');
+        if (arrow) { arrow.textContent = '◀'; arrow.style.color = '#ffffff'; }
+        if (label) label.textContent = 'PIVOT LEFT [A]';
+
+      } else if (cmd === 'CMD:RIGHT') {
+        // D: FL and RL rotate forward, FR and RR rotate reverse (pivot right)
+        setWheelState('wheel-fl', 'fwd');
+        setWheelState('wheel-fr', 'rev');
+        setWheelState('wheel-rl', 'fwd');
+        setWheelState('wheel-rr', 'rev');
+        if (arrow) { arrow.textContent = '▶'; arrow.style.color = '#ffffff'; }
+        if (label) label.textContent = 'PIVOT RIGHT [D]';
+
+      } else if (cmd === 'CMD:BACK_LEFT' || cmd === 'CMD:BACKWARD_LEFT' || cmd === 'CMD:REVERSE_LEFT') {
+        // Z: FR and RR rotate reverse, FL and RL stop
+        setWheelState('wheel-fl', 'stop');
+        setWheelState('wheel-fr', 'rev');
+        setWheelState('wheel-rl', 'stop');
+        setWheelState('wheel-rr', 'rev');
+        if (arrow) { arrow.textContent = '↙'; arrow.style.color = '#ffffff'; }
+        if (label) label.textContent = 'FR+RR REV [Z]';
+
+      } else if (cmd === 'CMD:BACK_RIGHT' || cmd === 'CMD:BACKWARD_RIGHT' || cmd === 'CMD:REVERSE_RIGHT') {
+        // C: FL and RL rotate reverse, FR and RR stop
+        setWheelState('wheel-fl', 'rev');
+        setWheelState('wheel-fr', 'stop');
+        setWheelState('wheel-rl', 'rev');
+        setWheelState('wheel-rr', 'stop');
+        if (arrow) { arrow.textContent = '↘'; arrow.style.color = '#ffffff'; }
+        if (label) label.textContent = 'FL+RL REV [C]';
+
+      } else {
+        // STOP / IDLE
+        setWheelState('wheel-fl', 'stop');
+        setWheelState('wheel-fr', 'stop');
+        setWheelState('wheel-rl', 'stop');
+        setWheelState('wheel-rr', 'stop');
+        if (arrow) { arrow.textContent = '●'; arrow.style.color = '#ffffff'; }
+        if (label) label.textContent = 'IDLE';
+      }
+    }
+
+    function driveStart(cmd) {
+      playSFX('click');
+      sendCmd(cmd);
+      updateWheelSchematic(cmd);
+    }
+
+    function driveStop() {
+      sendCmd('CMD:STOP');
+      updateWheelSchematic('CMD:STOP');
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  PWM MOTOR THROTTLE SPEED CONTROL
+    // ══════════════════════════════════════════════════════
+    let throttleDebounceTimer = null;
+    let currentThrottleVal = 75;
+
+    function updateThrottleFill(val) {
+      const slider = document.getElementById('speed-slider');
+      if (!slider) return;
+      const min = parseInt(slider.min || 20, 10);
+      const max = parseInt(slider.max || 100, 10);
+      const pct = Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
+      slider.style.background = `linear-gradient(to right, #2563eb 0%, #3b82f6 ${pct}%, #1e293b ${pct}%, #1e293b 100%)`;
+    }
+
+    function setMotorThrottle(val, immediate = false) {
+      val = parseInt(val, 10);
+      if (isNaN(val)) return;
+      val = Math.max(20, Math.min(100, val));
+      currentThrottleVal = val;
+
+      const readout = document.getElementById('speed-val');
+      if (readout) readout.textContent = val + '%';
+
+      const slider = document.getElementById('speed-slider');
+      if (slider && parseInt(slider.value, 10) !== val) slider.value = val;
+
+      updateThrottleFill(val);
+
+      // Update quick pills active state
+      [40, 60, 75, 100].forEach(p => {
+        const pill = document.getElementById(`pill-spd-${p}`);
+        if (pill) {
+          if (p === val) pill.classList.add('active');
+          else pill.classList.remove('active');
+        }
+      });
+
+      if (throttleDebounceTimer) clearTimeout(throttleDebounceTimer);
+      if (immediate) {
+        sendCmd(`CMD:SPEED:${val}`);
+        logTerminal(`⚡ PWM MOTOR THROTTLE: ${val}%`, 'normal');
+      } else {
+        throttleDebounceTimer = setTimeout(() => {
+          sendCmd(`CMD:SPEED:${val}`);
+          logTerminal(`⚡ PWM MOTOR THROTTLE: ${val}%`, 'normal');
+        }, 35);
+      }
+    }
+
+    function quickSetThrottle(val) {
+      playSFX('click');
+      setMotorThrottle(val, true);
+    }
+
+    // Initialize throttle visual fill on load
+    updateThrottleFill(75);
+
+    // Keyboard Mapping
+    const keyMap = {
+      'w': 'CMD:FORWARD',
+      's': 'CMD:BACKWARD',
+      'a': 'CMD:LEFT',
+      'd': 'CMD:RIGHT',
+      'q': 'CMD:FORWARD_LEFT',
+      'e': 'CMD:FORWARD_RIGHT',
+      'z': 'CMD:BACK_LEFT',
+      'c': 'CMD:BACK_RIGHT',
+      'x': 'CMD:STOP',
+      ' ': 'CMD:STOP',
+      '1': 'ARM:PICK:DEGRADABLE',
+      '2': 'ARM:PICK:NON_DEGRADABLE',
+      'r': 'ARM:BIN:RIGHT',
+      'l': 'ARM:BIN:LEFT',
+      'h': 'ARM:HOME',
+    };
+    const pressedKeys = new Set();
+
+    document.addEventListener('keydown', (ev) => {
+      // Prevent hotkeys while editing config inputs
+      if (['input', 'textarea'].includes(document.activeElement?.tagName?.toLowerCase())) return;
+
+      const k = ev.key.toLowerCase();
+      if (pressedKeys.has(k)) return;
+      pressedKeys.add(k);
+
+      if (k === '[') {
+        rotateBaseStart('CCW', 60);
+        return;
+      }
+      if (k === ']') {
+        rotateBaseStart('CW', 60);
+        return;
+      }
+      if (k === 'o') {
+        clawQuick(30);
+        return;
+      }
+      if (k === 'p') {
+        clawQuick(110);
+        return;
+      }
+
+      if (keyMap[k]) {
+        playSFX('click');
+        sendCmd(keyMap[k]);
+        updateWheelSchematic(keyMap[k]);
+
+        const btnId = { 'w': 'btn-w', 's': 'btn-s', 'a': 'btn-a', 'd': 'btn-d', 'q': 'btn-wa', 'e': 'btn-wd', 'z': 'btn-z', 'c': 'btn-c' }[k];
+        if (btnId) document.getElementById(btnId)?.classList.add('pressed');
+      }
+    });
+
+    document.addEventListener('keyup', (ev) => {
+      const k = ev.key.toLowerCase();
+      pressedKeys.delete(k);
+
+      if (k === '[' || k === ']') {
+        rotateBaseStop();
+        return;
+      }
+
+      if (['w', 's', 'a', 'd', 'q', 'e', 'z', 'c'].includes(k)) {
+        driveStop();
+        const btnId = { 'w': 'btn-w', 's': 'btn-s', 'a': 'btn-a', 'd': 'btn-d', 'q': 'btn-wa', 'e': 'btn-wd', 'z': 'btn-z', 'c': 'btn-c' }[k];
+        if (btnId) document.getElementById(btnId)?.classList.remove('pressed');
+      }
+    });
+
+    // ══════════════════════════════════════════════════════
+    //  TACTICAL PROXIMITY RADAR CANVAS
+    // ══════════════════════════════════════════════════════
+    const radarCanvas = document.getElementById('radar-canvas');
+    const rctx = radarCanvas.getContext('2d');
+    let radarAngle = 0;
+    let currentRadarDist = -1;
+
+    function updateRadarDist(dist) {
+      currentRadarDist = dist;
+    }
+
+    function drawRadar() {
+      const distCm = currentRadarDist;
+      const W = radarCanvas.width, H = radarCanvas.height;
+      const cx = W / 2, cy = H - 6;
+      const R = H - 18;
+
+      rctx.clearRect(0, 0, W, H);
+
+      // Concentric Gold Arcs
+      const arcs = [0.25, 0.5, 0.75, 1.0];
+      arcs.forEach((t, i) => {
+        rctx.beginPath();
+        rctx.arc(cx, cy, R * t, Math.PI, 0);
+        rctx.strokeStyle = `rgba(212, 175, 55, ${0.14 + i * 0.08})`;
+        rctx.lineWidth = 1.2;
+        rctx.stroke();
+
+        // Distance Label
+        rctx.fillStyle = '#ffffff';
+        rctx.font = 'bold 8.5px Consolas, monospace';
+        rctx.fillText(`${Math.round(200 * t)}cm`, cx + R * t + 3, cy - 2);
+      });
+
+      // Radial Bearing Rays
+      for (let a = 0; a <= 180; a += 30) {
+        const rad = (a * Math.PI) / 180;
+        rctx.beginPath();
+        rctx.moveTo(cx, cy);
+        rctx.lineTo(cx + R * Math.cos(Math.PI - rad), cy - R * Math.sin(Math.PI - rad));
+        rctx.strokeStyle = 'rgba(212, 175, 55, 0.09)';
+        rctx.lineWidth = 1;
+        rctx.stroke();
+      }
+
+      // Sweeping Golden Beam
+      radarAngle = (radarAngle + 1.8) % 180;
+      const sweepRad = (radarAngle * Math.PI) / 180;
+      const grad = rctx.createLinearGradient(cx, cy,
+        cx + R * Math.cos(Math.PI - sweepRad),
+        cy - R * Math.sin(Math.PI - sweepRad));
+      grad.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+      grad.addColorStop(0.35, 'rgba(212, 175, 55, 0.3)');
+      grad.addColorStop(1, 'rgba(212, 175, 55, 0)');
+
+      rctx.beginPath();
+      rctx.moveTo(cx, cy);
+      rctx.lineTo(cx + R * Math.cos(Math.PI - sweepRad), cy - R * Math.sin(Math.PI - sweepRad));
+      rctx.strokeStyle = grad;
+      rctx.lineWidth = 2.5;
+      rctx.stroke();
+
+      // Ultrasonic Obstacle Detection Visualizer
+      if (distCm > 0 && distCm <= 200) {
+        const blipR = (distCm / 200) * R;
+        const isDanger = distCm < 15;
+        const isCaution = distCm < 35;
+        const echoColor = isDanger ? '#ef4444' : isCaution ? '#f59e0b' : '#10b981';
+
+        // 1. Ultrasonic Frontal Barrier Arc (Span 45° to 135°)
+        const arcAngleStart = (45 * Math.PI) / 180;
+        const arcAngleEnd = (135 * Math.PI) / 180;
+        rctx.beginPath();
+        rctx.arc(cx, cy, blipR, Math.PI - arcAngleEnd, Math.PI - arcAngleStart);
+        rctx.strokeStyle = echoColor;
+        rctx.lineWidth = isDanger ? 4 : 3;
+        rctx.shadowColor = echoColor;
+        rctx.shadowBlur = 14;
+        rctx.stroke();
+        rctx.shadowBlur = 0;
+
+        // 2. Ultrasonic Sonar Pulse Ripples
+        const ripplePhase = (Date.now() / 450) % 1;
+        const rippleR = blipR * ripplePhase;
+        if (rippleR < blipR) {
+          rctx.beginPath();
+          rctx.arc(cx, cy, rippleR, Math.PI - arcAngleEnd, Math.PI - arcAngleStart);
+          rctx.strokeStyle = `rgba(212, 175, 55, ${0.45 * (1 - ripplePhase)})`;
+          rctx.lineWidth = 1.5;
+          rctx.stroke();
+        }
+
+        // 3. Central Obstacle Target Blip & Halo
+        rctx.beginPath();
+        rctx.arc(cx, cy - blipR, 5.5, 0, Math.PI * 2);
+        rctx.fillStyle = echoColor;
+        rctx.shadowColor = echoColor;
+        rctx.shadowBlur = 16;
+        rctx.fill();
+        rctx.shadowBlur = 0;
+
+        rctx.beginPath();
+        rctx.arc(cx, cy - blipR, 11, 0, Math.PI * 2);
+        rctx.strokeStyle = echoColor;
+        rctx.lineWidth = 1.5;
+        rctx.stroke();
+
+        // 4. Digital Distance Callout Text on Canvas
+        rctx.fillStyle = '#ffffff';
+        rctx.font = 'bold 9px Consolas, monospace';
+        rctx.textAlign = 'center';
+        rctx.fillText(`${distCm.toFixed(1)} cm`, cx, cy - blipR - 12);
+        rctx.textAlign = 'left';
+
+        // 5. Canvas HUD Status Header
+        rctx.fillStyle = isDanger ? '#ef4444' : '#ffffff';
+        rctx.font = 'bold 8.5px Consolas, JetBrains Mono, monospace';
+        rctx.fillText(`ECHO: ${distCm.toFixed(1)} CM`, 10, 16);
+
+        rctx.fillStyle = isDanger ? '#ef4444' : isCaution ? '#f59e0b' : '#ffffff';
+        rctx.textAlign = 'right';
+        rctx.fillText(isDanger ? '⚠️ AUTO-STOP RISK' : isCaution ? 'APPROACH' : 'PATH CLEAR', W - 10, 16);
+        rctx.textAlign = 'left';
+      } else {
+        // Canvas HUD Idle Line
+        rctx.fillStyle = '#ffffff';
+        rctx.font = 'bold 8.5px Consolas, JetBrains Mono, monospace';
+        rctx.fillText('ULTRASONIC: SCANNING (CLEAR PATH)', 10, 16);
+      }
+    }
+    setInterval(drawRadar, 40);
+
+    // ══════════════════════════════════════════════════════
+    //  ARM & 6-SERVO DIRECT KINEMATICS CONTROL
+    // ══════════════════════════════════════════════════════
+    function triggerArmPreset(cmd) {
+      playSFX('click');
+      sendCmd(cmd);
+      logTerminal(`🦾 ROBOTIC ARM PRESET: ${cmd}`, 'highlight');
+      // If HOME, sync UI sliders back to home pose
+      if (cmd === 'ARM:HOME') {
+        const homePos = { 0: 90, 1: 100, 2: 90, 3: 90, 4: 90, 5: 30 };
+        for (const [ch, angle] of Object.entries(homePos)) {
+          const sl = document.getElementById(`joint-slider-${ch}`);
+          if (sl) sl.value = angle;
+          const jv = document.getElementById(`jv${ch}`);
+          if (jv) jv.textContent = `${angle}°`;
+        }
+      }
+    }
+
+    function quickJoint(ch, val) {
+      playSFX('click');
+      const slider = document.getElementById(`joint-slider-${ch}`);
+      if (slider) slider.value = val;
+      updateJoint(ch, val);
+      logTerminal(`🦾 JOINT M${parseInt(ch)+1} SET TO ${val}°`, 'highlight');
+    }
+
+    let baseStepTimeout = null;
+
+    function rotateBaseStart(dir, spd = 60) {
+      playSFX('click');
+      if (baseStepTimeout) { clearTimeout(baseStepTimeout); baseStepTimeout = null; }
+      sendCmd(`ARM:BASE:${dir}:${spd}`);
+      logTerminal(`🔄 BASE SPIN: ${dir} @ ${spd}%`, 'highlight');
+    }
+
+    function rotateBaseStop() {
+      playSFX('click');
+      if (baseStepTimeout) { clearTimeout(baseStepTimeout); baseStepTimeout = null; }
+      sendCmd('ARM:BASE:STOP');
+      logTerminal('⏹ BASE: STOPPED', 'normal');
+    }
+
+    function rotateBaseStep(dir, deg) {
+      playSFX('click');
+      const ms = Math.max(100, Math.round((deg / 180) * 1100));
+      sendCmd(`ARM:BASE:${dir}:60:${ms}`);
+      logTerminal(`🔄 BASE STEP: ${dir} ${deg}° (${ms}ms)`, 'highlight');
+    }
+
+    function updateBaseThrottle(val) {
+      val = parseInt(val, 10);
+      if (val === 0) {
+        sendCmd('ARM:BASE:STOP');
+      } else if (val > 0) {
+        sendCmd(`ARM:BASE:CW:${val}`);
+      } else {
+        sendCmd(`ARM:BASE:CCW:${Math.abs(val)}`);
+      }
+    }
+
+    let jointDebounceTimers = {};
+    function updateJoint(ch, val) {
+      val = parseInt(val, 10);
+      const disp = document.getElementById(`jv${ch}`);
+      if (disp) disp.textContent = val + '°';
+      if (ch === 0) {
+        clearTimeout(jointDebounceTimers[0]);
+        jointDebounceTimers[0] = setTimeout(() => {
+          sendCmd(`ARM:SERVO:0:${val}`);
+          logTerminal(`🦾 M1 BASE 360° AUTO-ROTATE TO ${val}°`, 'highlight');
+        }, 120);
+      } else {
+        sendCmd(`ARM:SERVO:${ch}:${val}`);
+      }
+    }
+
+    function clawQuick(val) {
+      playSFX('click');
+      const slider = document.getElementById('joint-slider-5');
+      if (slider) slider.value = val;
+      updateJoint(5, val);
+      logTerminal(val <= 45 ? `🖐️ CLAW GRIPPER OPENED (${val}°)` : `✊ CLAW GRIPPER CLAMPED (${val}°)`, 'highlight');
+    }
+
+    function setMode(mode) {
+      playSFX('target');
+      sendCmd(mode === 'AUTO' ? 'SET_MODE_AUTO' : 'SET_MODE_MANUAL');
+      logTerminal(`MODE SHIFT: ${mode} CONTROL ACTIVE`, 'highlight');
+    }
+
+    function triggerEStop() {
+      playSFX('alert');
+      sendCmd('ESTOP');
+      updateWheelSchematic('CMD:STOP');
+      logTerminal('⬛ EMERGENCY HALT (E-STOP) ENGAGED', 'danger');
+    }
+
+    function applyConfig() {
+      playSFX('click');
+      const cam = document.getElementById('cfg-cam').value.trim();
+      const dvk = document.getElementById('cfg-devkit').value.trim();
+      sendMsg({ type: 'config', cam_url: cam, devkit_ip: dvk });
+      logTerminal(`CONFIG SYNC: CAM=${cam} | DEVKIT=${dvk}`, 'highlight');
+    }
+
+
+
+    // ══════════════════════════════════════════════════════
+    //  SCROLL ANIMATION & DYNAMIC LASER TRACKER CONTROLLER
+    // ══════════════════════════════════════════════════════
+    let isScrollingTimeout = null;
+
+    function handleScrollAnimation() {
+      const scrollY = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPct = docHeight > 0 ? Math.min(100, Math.max(0, (scrollY / docHeight) * 100)) : 0;
+
+      // 1. Dynamic Top Laser Scroll Progress Bar
+      const progressBar = document.getElementById('scroll-bar');
+      if (progressBar) {
+        progressBar.style.width = `${scrollPct}%`;
+      }
+
+      // 2. Pure Obsidian Grid Background Parallax Drift
+      document.documentElement.style.setProperty('--scroll-shift', `${(scrollY * 0.18).toFixed(1)}px`);
+
+      // 3. Active Scrolling Pulse State on Body & Header
+      document.body.classList.add('is-scrolling');
+      clearTimeout(isScrollingTimeout);
+      isScrollingTimeout = setTimeout(() => {
+        document.body.classList.remove('is-scrolling');
+      }, 180);
+
+      // 4. Floating Tactical Scroll HUD Indicator
+      const hud = document.getElementById('scroll-hud');
+      const deckText = document.getElementById('scroll-deck-text');
+      if (hud) {
+        if (scrollY > 60) {
+          hud.classList.add('visible');
+        } else {
+          hud.classList.remove('visible');
+        }
+      }
+
+      if (deckText) {
+        let currentDeck = 'COCKPIT APEX';
+        if (scrollPct > 70) currentDeck = 'CONFIG DOCK';
+        else if (scrollPct > 35) currentDeck = 'TELEMETRY & LOG';
+        else if (scrollPct > 12) currentDeck = 'HUD & KINEMATICS';
+        deckText.textContent = `${currentDeck} · ${Math.round(scrollPct)}%`;
+      }
+    }
+
+    window.addEventListener('scroll', handleScrollAnimation, { passive: true });
+    handleScrollAnimation();
+
+    // 5. IntersectionObserver for Dynamic Viewport Entry Flare
+    const scrollObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          entry.target.classList.add('scroll-flare');
+        }
+      });
+    }, {
+      threshold: 0.08,
+      rootMargin: '0px 0px -30px 0px'
+    });
+
+    document.querySelectorAll('.scroll-reveal').forEach(el => {
+      scrollObserver.observe(el);
+    });
+  </script>
+
+  <!-- ── TACTICAL FLOATING SCROLL HUD INDICATOR ── -->
+  <div class="scroll-hud-indicator" id="scroll-hud">
+    <div class="scroll-hud-pill">
+      <span class="scroll-hud-dot"></span>
+      <span class="scroll-hud-deck" id="scroll-deck-text">COCKPIT · 0%</span>
+    </div>
+    <button class="scroll-hud-btn" id="scroll-top-btn" onclick="window.scrollTo({top:0, behavior:'smooth'})"
+      title="Ascend to Cockpit Apex">
+      ▲ APEX
+    </button>
+  </div>
+
+</body>
+
+</html>

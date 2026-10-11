@@ -1,0 +1,24 @@
+path: .
+train: train/images
+val: valid/images
+test: valid/images
+nc: 12
+names:
+- battery
+- can
+- cardboard
+- drink carton
+- glass bottle
+- paper
+- plastic bag
+- plastic bottle
+- plastic bottle cap
+- pop tab
+- cup
+- banana peel
+roboflow:
+  workspace: aadhidhya-s
+  project: yolov8-trash-detections-md3pu
+  version: 1
+  license: CC BY 4.0
+  url: https://app.roboflow.com/aadhidhya-s/yolov8-trash-detections-md3pu/1
